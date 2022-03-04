@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function FROM {
+    ctr1=$(buildah from $1)
+    echo "Working container: $ctr1"
+}
+
+function RUN {
+    buildah run -v $HOME/.buildahcache/apt:/var/lib/apt \
+        -v $HOME/.buildahcache/composer:/root/.composer \
+        -v $HOME/.buildahcache/npm:/root/.npm \
+        $ctr1 $*
+}
+
+function ADD {
+    buildah add $ctr1 $*
+}
