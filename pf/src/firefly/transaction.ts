@@ -43,18 +43,24 @@ export interface RawTransaction {
   tags: string[];
 }
 
-export interface Transaction extends RawTransaction {
-  currency: Currency;
-  foreign_currency: Currency | null;
+export interface Transaction {
+  description: string;
   source: Account;
   destination: Account;
+  date: Moment;
+  currency: Currency;
+  amount: string;
+  foreign_currency: Currency | null;
+  foreign_amount: string | null;
   budget: Budget;
   category: Category;
+  tags: string[];
+  type: TransactionType;
 }
 
 export interface TransactionGroup {
   id: string;
-  group_tile: string | null;
+  group_title: string | null;
   transactions: Transaction[];
 }
 
@@ -62,13 +68,17 @@ export function storeNewTransaction(transactionGroup: TransactionGroup) {
   const data = {
     transactions: transactionGroup.transactions.map((t: Transaction) => ({
       amount: t.amount,
-      book_date: "",
+      destination_id: t.destination.id,
+      destination_name: t.destination.name,
+      souce_id: t.source.id,
+      source_name: t.source.name,
       budget_id: t.budget.id,
       category_name: t.category.name,
       date: t.date.format('YYYY-MM-DD'),
       description: t.description,
-      destination_id: t.destination.id,
-      destination_name: t.destination.name,
+      tags: t.tags,
+      type: t.type,
+      book_date: "",
       due_date: "",
       interest_date: "",
       internal_reference: "",
@@ -76,10 +86,6 @@ export function storeNewTransaction(transactionGroup: TransactionGroup) {
       notes: "",
       payment_date: "",
       process_date: "",
-      souce_id: t.source.id,
-      source_name: t.source.name,
-      tags: t.tags,
-      type: t.type,
     })),
   };
 

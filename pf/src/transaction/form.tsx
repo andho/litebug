@@ -1,120 +1,118 @@
 import React from 'react';
 import { TextField, Autocomplete, Button } from '@mui/material';
 import { DatePicker } from '@mui/lab';
+import { useForm, useFieldArray, useWatch, Controller, useController, Control, Field } from 'react-hook-form';
+
 import moment, { Moment } from 'moment';
+import _ from 'lodash';
+import { matchSorter } from 'match-sorter';
+
 import { FireflyProvider, FireflyContext } from '../firefly/context';
 import { Account, AccountType, accountRoles } from '../firefly/accounts';
 import { Currency } from '../firefly/currency';
 import { Budget } from '../firefly/budget';
 import { Category } from '../firefly/category';
-import { TransactionGroup, Transaction, storeNewTransaction } from '../firefly/transaction';
-import _ from 'lodash';
+import { TransactionGroup, Transaction, storeNewTransaction, TransactionType } from '../firefly/transaction';
 
 const defaultSourceTypes = [AccountType.Asset, AccountType.Revenue];
 const defaultDestinationTypes = [AccountType.Asset, AccountType.Expense];
 
+type FormValues = {
+  transactions: {
+    description: string,
+    source: Account,
+    destination: Account,
+    amount: string,
+    foreign_currency: Currency,
+    foreign_amount: string,
+    budget: Budget,
+    category: Category,
+  }[],
+};
+
+const defaults = {
+  description: '',
+  amount: '',
+  foreign_amount: '',
+};
+
 export default function Form() {
-  const [date, setDate] = React.useState<Moment | null>(moment());
-  const [source, setSource] = React.useState<Account | null>(null);
-  const [destination, setDestination] = React.useState<Account | null>(null);
-  const [currency, setCurrency] = React.useState<Currency | null>(null);
-  const [budget, setBudget] = React.useState<Budget | null>(null);
-  const [category, setCategory] = React.useState<Category | null>(null);
-  const [amount, setAmount] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [foreignAmount, setForeingAmount] = React.useState("");
+  const { handleSubmit, control, reset, formState } = useForm<FormValues>({
+    defaultValues: {
+      transactions: [{
+        description: '',
+        amount: '',
+        foreign_amount: '',
+      }],
+    },
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'transactions',
+  });
 
-  const [sourceTypes, setSourceTypes] = React.useState<Array<AccountType>>(defaultSourceTypes);
-  const [destinationTypes, setDestinationTypes] = React.useState<Array<AccountType>>(defaultDestinationTypes);
+  const onSubmit = handleSubmit((data) => {
+    console.log(data);
+    //const transaction: Transaction = {
+    //  ...data,
+    //  date: moment(),
+    //  currency: {
+    //    id: data.source.currency_id,
+    //    name: '',
+    //    code: data.source.currency_code,
+    //    symbol: data.source.currency_symbol,
+    //    decimal_places: data.source.currency_decimal_places,
+    //  },
+    //  tags: [],
+    //  type: TransactionType.Transfer,
+    //};
+    //const transactionGroup: TransactionGroup = {
+    //  id: '',
+    //  transactions: [ transaction ],
+    //  group_title: '',
+    //};
 
-  const submitTransaction = () => {
-    const transaction: Transaction = {
-      date,
-      source,
-      destination,
-      ForeignCurrency: currency,
-      currency: currencyFromAccount(source),
-      budget,
-      category,
-      amount,
-      foreignAmount,
-      description,
-    };
-    const TransactionGroup = {
-      transactions: [ transaction ],
-      group_title: '',
-    };
-    storeNewTransaction(transactionGroup);
+    //storeNewTransaction(transactionGroup);
+  });
+
+  const addSplit = () => {
+    append(defaults);
   };
-
-  const onSourceChange = (_: any, account: Account | null) => {
-    setSource(account);
-  };
-
-  const onDestinationChange = (_: any, account: Account | null) => {
-    setDestination(account);
-  };
-
-  const onCurrencyChange = (_: any, currency: Currency | null) => {
-    setCurrency(currency);
-  };
-
-  const onBudgetChange = (_: any, budget: Budget | null) => setBudget(budget);
-  const onCategoryChange = (_: any, category: Budget | null) => setCategory(category);
-
-  React.useEffect(() => {
-    if (source !== null) {
-      if (source.type === AccountType.Asset) {
-        setDestinationTypes([AccountType.Expense, AccountType.Asset]);
-      } else if (source.type === AccountType.Revenue) {
-        setDestinationTypes([AccountType.Asset]);
-      }
-    }
-
-    if (destination !== null) {
-      if (destination.type === AccountType.Expense) {
-        setSourceTypes([AccountType.Asset]);
-      } else if (destination.type === AccountType.Asset) {
-        setSourceTypes([AccountType.Asset, AccountType.Revenue]);
-      }
-    }
-
-  }, [source, destination]);
 
   return (
     <FireflyProvider>
-      <div className="transactionForm">
-        <DescriptionField />
-        <AccountField id='Source' accountTypes={sourceTypes} onChange={onSourceChange} />
-        <AccountField id='Destination' accountTypes={destinationTypes} onChange={onDestinationChange} />
-        <DatePicker
-          label="Date"
-          value={date}
-          onChange={(newDate) => { setDate(newDate); }}
-          renderInput={(params) => <TextField {...params} />}
-        />
-        <TextField id="amount" label="Amount" />
-        <CurrencyField id="foreignCurrency" label="Foreign Currency"
-          onChange={onCurrencyChange} />
-        <TextField id="foreignAmount" label="Foreign Amount" />
-        <BudgetField id="budget" onChange={onBudgetChange} />
-        <CategoryField id="category" />
-        <Button variant="contained">Submit</Button>
+      <form onSubmit={onSubmit}>
+        {fields.map((field, index) => (
+          <div key={field.id}>
+            <DescriptionField {...{control, index}} />
+            <SourceAccountField {...{control, index}} />
+            <DestinationAccountField {...{control, index}} />
+            <AmountField {...{control, index}} />
+            <CurrencyField {...{control, index}} name="foreign_currency" label="Foreign Currency" />
+            <ForeignAmountField {...{control, index}} />
+            <BudgetField {...{control, index}} />
+            <CategoryField {...{control, index}} />
+          </div>
+        ))}
+        <Button variant="outlined" onClick={addSplit}>Add another split</Button>
+        <Button variant="contained" type="submit">Submit</Button>
         <RefreshButton />
-      </div>
+      </form>
      </FireflyProvider>
   );
 }
 
-interface DescriptionOption {
-  label: string;
-}
+type DescriptionOption = string;
 
-function DescriptionField() {
-  const [value, setValue] = React.useState<DescriptionOption | null>(null);
+function DescriptionField({ control, index }: ControlledProps) {
   const [inputValue, setInputValue] = React.useState('');
   const [options, setOptions] = React.useState<Array<DescriptionOption>>([]);
   const [loading, setLoading] = React.useState(false);
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.description` as const,
+    rules: { required: true },
+  });
 
   let request: ReturnType<typeof setTimeout>;
   const loadOptions = (input: string) => {
@@ -124,11 +122,6 @@ function DescriptionField() {
     return new Promise<Array<DescriptionOption>>((resolve, reject) => {
       request = setTimeout(() => {
         resolve([
-          {label: 'stts'},
-          {label: 'eses,'},
-          {label: 'es,c.r'},
-          {label: 'fueiwi'},
-          {label: 'yfufwe'},
         ]);
       }, 1000);
     });
@@ -147,49 +140,151 @@ function DescriptionField() {
   };
   return (
     <Autocomplete
+      onChange={(e, value) => {
+        field.onChange(value);
+      }}
+      size="small"
+      value={field.value}
       id="description"
       options={options}
       loading={loading}
-      value={value}
-      onChange={(e: any, newValue: DescriptionOption | null) => {
-        setValue(newValue);
-      }}
       inputValue={inputValue}
       onInputChange={(e, newInputValue) => {
         inputHandler(newInputValue);
       }}
       filterOptions={x => x}
-      renderInput={(params) => <TextField {...params} label="Description" />}
+      freeSolo
+      autoHighlight
+      autoSelect
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          inputRef={field.ref}
+          label="Description"
+          error={fieldState.invalid}
+        />
+      )}
     />
   );
 }
 
 interface AccountFieldProps extends StandardProps {
   accountTypes: AccountType[],
+  name: string,
+  value: Account,
+  onChange: (value: Account | null) => void,
+  error: any | null,
+  disabled: boolean,
 }
 
 function AccountField(props: AccountFieldProps) {
-  const { state: { accounts: accountsData } } = React.useContext(FireflyContext);
+  const { state: { accounts: accountsData } }: { state: { accounts: Account[] } } = React.useContext(FireflyContext);
 
-  const accounts = accountsData.map(account => ({
-    label: account.name,
-    ...account
-  })).filter((account: Account) => {
-    return props.accountTypes.includes(account.type);
-  });
+  const accounts = accountsData.filter(account => props.accountTypes.includes(account.type));
 
   return (
     <Autocomplete
+      size="small"
       options={accounts}
-      groupBy={account => {
+      getOptionLabel={account => account.name}
+      groupBy={(account: Account) => {
         if (account.type === AccountType.Asset && account.account_role) {
           return 'Asset: ' + accountRoles[account.account_role];
         } else {
           return _.capitalize(account.type);
         }
       }}
-      onChange={props.onChange}
-      renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
+      value={props.value}
+      onChange={(e, value) => {
+        props.onChange(value);
+      }}
+      disabled={props.disabled}
+      autoHighlight
+      autoSelect
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label={props.label || props.name}
+          error={props.error}
+        />)
+      }
+    />
+  );
+}
+
+type ControlledProps = {
+  control: Control<FormValues>,
+  index: number,
+};
+
+function SourceAccountField({ control, index }: ControlledProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.source` as const,
+    rules: { required: true },
+  });
+
+  const [source, destination] = useWatch({
+    name: [
+      `transactions.0.source` as const,
+      `transactions.0.destination` as const,
+    ],
+    control,
+  });
+  const accountTypes = (
+    index === 0 && destination?.type === AccountType.Expense ? [AccountType.Asset] : defaultSourceTypes
+  ) || (
+    index !== 0 && [source.type]
+  );
+
+  let disabled = false;
+  if (index !== 0 && source?.type === AccountType.Asset) {
+    disabled = true;
+  }
+
+  return (
+    <AccountField
+      {...field}
+      disabled={disabled}
+      label="Source Account"
+      accountTypes={accountTypes}
+      error={fieldState.invalid}
+    />
+  );
+}
+
+function DestinationAccountField({ control, index }: ControlledProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.destination` as const,
+    rules: { required: true },
+  });
+
+  const [source, destination] = useWatch({
+    name: [
+      `transactions.0.source` as const,
+      `transactions.0.destination` as const,
+    ],
+    control,
+  });
+  const accountTypes = source?.type === AccountType.Revenue ? [AccountType.Asset] : defaultDestinationTypes;
+
+  let disabled = false;
+  if (index !== 0 && source) {
+    if (source.type === AccountType.Asset && destination?.type === AccountType.Asset) {
+      disabled = true;
+    } else if (source.type === AccountType.Revenue) {
+      disabled = true;
+    }
+  }
+
+  return (
+    <AccountField
+      {...field}
+      label="Destination Account"
+      accountTypes={accountTypes}
+      error={fieldState.invalid}
+      disabled={disabled}
     />
   );
 }
@@ -198,60 +293,90 @@ const currencies = [
   { code: 'MVR', shortName: 'Rufiya', name: 'Maldivian Rufiya', label: 'MVR' }
 ];
 
-function CurrencyField(props: StandardProps) {
-  const { state: { currencies: currencyData } } = React.useContext(FireflyContext);
+type CurrencyProps = StandardProps & ControlledProps & {
+  name: 'foreign_currency',
+};
 
-  const currencies = currencyData.map(currency => ({
-    label: `${currency.name} (${currency.code})`,
-    ...currency
-  }));
+function CurrencyField({ control, label, index }: CurrencyProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.foreign_currency` as const,
+  });
+  const { state: { currencies } } = React.useContext(FireflyContext);
+
   // TODO: filter out the currency of the currently selected source account
 
   return (
     <Autocomplete
+      size="small"
       options={currencies}
-      onChange={props.onChange}
-      renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
+      getOptionLabel={currency => currency.name}
+      onChange={(e, value) => { field.onChange(value); }}
+      value={field.value}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Foreign Currency"
+          error={fieldState.invalid}
+        />)
+      }
     />
   );
 }
 
 interface StandardProps {
-  id: string;
+  id?: string;
   label?: string;
-  onChange?: (event: any, value: any) => void;
 }
 
-function BudgetField(props: StandardProps) {
-  const { state: { budgets: budgetsData } } = React.useContext(FireflyContext);
-
-  const budgets = budgetsData.map(budget => ({
-    label: budget.name,
-    ...budget
-  }));
+function BudgetField({ control, index }: ControlledProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.budget` as const,
+    rules: { required: true },
+  });
+  const { state: { budgets } } = React.useContext(FireflyContext);
 
   return (
     <Autocomplete
+      size="small"
       options={budgets}
-      onChange={props.onChange}
-      renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
+      getOptionLabel={budget => budget.name}
+      onChange={(e, value) => { field.onChange(value); }}
+      value={field.value}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Budget"
+          error={fieldState.invalid}
+        />)
+      }
     />
   );
 }
 
-function CategoryField(props: StandardProps) {
-  const { state: { categories: categoriesData } } = React.useContext(FireflyContext);
-
-  const categories = categoriesData.map(category => ({
-    label: category.name,
-    ...category
-  }));
+function CategoryField({ control, index }: ControlledProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.category` as const,
+    rules: { required: true },
+  });
+  const { state: { categories } } = React.useContext(FireflyContext);
 
   return (
     <Autocomplete
+      size="small"
       options={categories}
-      onChange={props.onChange}
-      renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
+      getOptionLabel={category => category.name}
+      onChange={(e, value) => { field.onChange(value); }}
+      value={field.value}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Budget"
+          error={fieldState.invalid}
+        />)
+      }
     />
   );
 }
@@ -263,8 +388,42 @@ const tags = [
 function TagsField(props: StandardProps) {
   return (
     <Autocomplete
+      size="small"
       options={tags}
       renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
+    />
+  );
+}
+
+function AmountField({ control, index }: ControlledProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.amount` as const,
+    rules: { required: true },
+  });
+  return (
+    <TextField
+      size="small"
+      onChange={(value) => { field.onChange(value); }}
+      value={field.value}
+      error={fieldState.invalid}
+      label="Amount"
+    />
+  );
+}
+
+function ForeignAmountField({ control, index }: ControlledProps) {
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.foreign_amount` as const,
+  });
+  return (
+    <TextField
+      size="small"
+      onChange={(value) => { field.onChange(value); }}
+      value={field.value}
+      error={fieldState.invalid}
+      label="Foreign Amount"
     />
   );
 }
