@@ -1,13 +1,12 @@
 import React from 'react';
-import { TextField, Autocomplete, Button } from '@mui/material';
+import { TextField, Autocomplete, Button, Box } from '@mui/material';
 import { DatePicker } from '@mui/lab';
 import { useForm, useFieldArray, useWatch, Controller, useController, Control, Field } from 'react-hook-form';
 
 import moment, { Moment } from 'moment';
 import _ from 'lodash';
-import { matchSorter } from 'match-sorter';
 
-import { FireflyProvider, FireflyContext } from '../firefly/context';
+import { FireflyContext } from '../firefly/context';
 import { Account, AccountType, accountRoles } from '../firefly/accounts';
 import { Currency } from '../firefly/currency';
 import { Budget } from '../firefly/budget';
@@ -17,14 +16,18 @@ import { TransactionGroup, Transaction, storeNewTransaction, TransactionType } f
 const defaultSourceTypes = [AccountType.Asset, AccountType.Revenue];
 const defaultDestinationTypes = [AccountType.Asset, AccountType.Expense];
 
+const sx = {
+  width: 300,
+};
+
 type FormValues = {
   transactions: {
     description: string,
     source: Account,
     destination: Account,
     amount: string,
-    foreign_currency: Currency,
-    foreign_amount: string,
+    foreign_currency: Currency | null,
+    foreign_amount: string | null,
     budget: Budget,
     category: Category,
   }[],
@@ -79,26 +82,37 @@ export default function Form() {
     append(defaults);
   };
 
+  const { refreshData } = React.useContext(FireflyContext);
+
+  const onRefresh = () => {
+    refreshData();
+  };
+
+  React.useEffect(() => {
+    console.log("Let's refresh the data");
+    refreshData();
+  }, []);
+
   return (
-    <FireflyProvider>
-      <form onSubmit={onSubmit}>
-        {fields.map((field, index) => (
-          <div key={field.id}>
-            <DescriptionField {...{control, index}} />
-            <SourceAccountField {...{control, index}} />
-            <DestinationAccountField {...{control, index}} />
-            <AmountField {...{control, index}} />
-            <CurrencyField {...{control, index}} name="foreign_currency" label="Foreign Currency" />
-            <ForeignAmountField {...{control, index}} />
-            <BudgetField {...{control, index}} />
-            <CategoryField {...{control, index}} />
-          </div>
-        ))}
-        <Button variant="outlined" onClick={addSplit}>Add another split</Button>
-        <Button variant="contained" type="submit">Submit</Button>
-        <RefreshButton />
-      </form>
-     </FireflyProvider>
+    <form onSubmit={onSubmit}>
+      <Box sx={{ flexDirection: 'column', display: 'flex' }}>
+      {fields.map((field, index) => (
+        <Box key={field.id} sx={{ flexDirection: 'row', display: 'flex' }}>
+          <DescriptionField {...{control, index}} />
+          <SourceAccountField {...{control, index}} />
+          <DestinationAccountField {...{control, index}} />
+          <AmountField {...{control, index}} />
+          <BudgetField {...{control, index}} />
+          <CategoryField {...{control, index}} />
+        </Box>
+      ))}
+      </Box>
+      <Button variant="outlined" onClick={addSplit}>Add another split</Button>
+      <Button variant="contained" type="submit">Submit</Button>
+      <Button onClick={onRefresh}>
+        Refresh Data
+      </Button>
+    </form>
   );
 }
 
@@ -144,6 +158,7 @@ function DescriptionField({ control, index }: ControlledProps) {
         field.onChange(value);
       }}
       size="small"
+      sx={{ ...sx }}
       value={field.value}
       id="description"
       options={options}
@@ -185,6 +200,7 @@ function AccountField(props: AccountFieldProps) {
   return (
     <Autocomplete
       size="small"
+      sx={{ ...sx }}
       options={accounts}
       getOptionLabel={account => account.name}
       groupBy={(account: Account) => {
@@ -218,11 +234,6 @@ type ControlledProps = {
 };
 
 function SourceAccountField({ control, index }: ControlledProps) {
-  const { field, fieldState } = useController({
-    control,
-    name: `transactions.${index}.source` as const,
-    rules: { required: true },
-  });
 
   const [source, destination] = useWatch({
     name: [
@@ -242,6 +253,12 @@ function SourceAccountField({ control, index }: ControlledProps) {
     disabled = true;
   }
 
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.source` as const,
+    rules: { required: !disabled },
+  });
+
   return (
     <AccountField
       {...field}
@@ -254,11 +271,6 @@ function SourceAccountField({ control, index }: ControlledProps) {
 }
 
 function DestinationAccountField({ control, index }: ControlledProps) {
-  const { field, fieldState } = useController({
-    control,
-    name: `transactions.${index}.destination` as const,
-    rules: { required: true },
-  });
 
   const [source, destination] = useWatch({
     name: [
@@ -277,6 +289,12 @@ function DestinationAccountField({ control, index }: ControlledProps) {
       disabled = true;
     }
   }
+
+  const { field, fieldState } = useController({
+    control,
+    name: `transactions.${index}.destination` as const,
+    rules: { required: !disabled },
+  });
 
   return (
     <AccountField
@@ -309,6 +327,7 @@ function CurrencyField({ control, label, index }: CurrencyProps) {
   return (
     <Autocomplete
       size="small"
+      sx={{ ...sx }}
       options={currencies}
       getOptionLabel={currency => currency.name}
       onChange={(e, value) => { field.onChange(value); }}
@@ -333,17 +352,19 @@ function BudgetField({ control, index }: ControlledProps) {
   const { field, fieldState } = useController({
     control,
     name: `transactions.${index}.budget` as const,
-    rules: { required: true },
   });
   const { state: { budgets } } = React.useContext(FireflyContext);
 
   return (
     <Autocomplete
       size="small"
+      sx={{ ...sx }}
       options={budgets}
       getOptionLabel={budget => budget.name}
       onChange={(e, value) => { field.onChange(value); }}
       value={field.value}
+      autoHighlight
+      autoSelect
       renderInput={(params) => (
         <TextField
           {...params}
@@ -359,21 +380,23 @@ function CategoryField({ control, index }: ControlledProps) {
   const { field, fieldState } = useController({
     control,
     name: `transactions.${index}.category` as const,
-    rules: { required: true },
   });
   const { state: { categories } } = React.useContext(FireflyContext);
 
   return (
     <Autocomplete
       size="small"
+      sx={{ ...sx }}
       options={categories}
       getOptionLabel={category => category.name}
       onChange={(e, value) => { field.onChange(value); }}
       value={field.value}
+      autoHighlight
+      autoSelect
       renderInput={(params) => (
         <TextField
           {...params}
-          label="Budget"
+          label="Category"
           error={fieldState.invalid}
         />)
       }
@@ -389,6 +412,7 @@ function TagsField(props: StandardProps) {
   return (
     <Autocomplete
       size="small"
+      sx={{ ...sx }}
       options={tags}
       renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
     />
@@ -425,19 +449,5 @@ function ForeignAmountField({ control, index }: ControlledProps) {
       error={fieldState.invalid}
       label="Foreign Amount"
     />
-  );
-}
-
-function RefreshButton() {
-  const { refreshData } = React.useContext(FireflyContext);
-
-  const onClick = () => {
-    refreshData();
-  };
-
-  return (
-    <Button onClick={onClick}>
-      Refresh Data
-    </Button>
   );
 }
