@@ -47,13 +47,13 @@ export interface Transaction {
   description: string;
   source: Account;
   destination: Account;
-  date: Moment;
+  date: Date;
   currency: Currency;
   amount: string;
   foreign_currency: Currency | null;
   foreign_amount: string | null;
-  budget: Budget;
-  category: Category;
+  budget: Budget | null;
+  category: Category | null;
   tags: string[];
   type: TransactionType;
 }
@@ -65,16 +65,18 @@ export interface TransactionGroup {
 }
 
 export function storeNewTransaction(transactionGroup: TransactionGroup) {
+  const firstSource = transactionGroup.transactions[0].source;
+  const firstDestination = transactionGroup.transactions[0].destination;
   const data = {
     transactions: transactionGroup.transactions.map((t: Transaction) => ({
       amount: t.amount,
-      destination_id: t.destination.id,
-      destination_name: t.destination.name,
-      souce_id: t.source.id,
-      source_name: t.source.name,
-      budget_id: t.budget.id,
-      category_name: t.category.name,
-      date: t.date.format('YYYY-MM-DD'),
+      destination_id: t.destination?.id || firstDestination.id,
+      destination_name: t.destination?.name || firstDestination.name,
+      souce_id: t.source?.id || firstSource.id,
+      source_name: t.source?.name || firstSource.name,
+      budget_id: t.budget?.id,
+      category_name: t.category?.name,
+      date: moment(t.date).format('YYYY-MM-DD'),
       description: t.description,
       tags: t.tags,
       type: t.type,
@@ -87,7 +89,53 @@ export function storeNewTransaction(transactionGroup: TransactionGroup) {
       payment_date: "",
       process_date: "",
     })),
+    error_if_duplicate: false,
+    apply_rules: false,
+    fire_webhooks: true,
+    group_title: transactionGroup.group_title,
   };
 
   return fireflyApi.post('/api/v1/transactions', data);
+}
+
+export interface TransactionAutocomplete {
+  id: string;
+  transaction_group_id: string;
+  name: string;
+  description: string;
+}
+
+export function transactionAutocomplete(query: string) {
+  return fireflyApi.get('/api/v1/autocomplete/transactions', {
+    params: {
+      query,
+      limit: 10,
+    },
+  })
+  .then(response => response.data.map(
+    (transaction: any): TransactionAutocomplete => {
+      return {
+        ...transaction,
+      };
+    }
+  ));
+};
+
+export function fetchTransactionById(id: string) {
+  return fireflyApi.get(`/api/v1/transactions/${id}`)
+  .then(response => {
+    return response.data;
+  });
+}
+
+export function getTransactionType(source: Account, destination: Account) {
+  if (source.type === AccountType.Asset) {
+    if (destination.type === AccountType.Asset) {
+      return TransactionType.Transfer;
+    }
+
+    return TransactionType.Withdrawal;
+  }
+
+  return TransactionType.Deposit;
 }

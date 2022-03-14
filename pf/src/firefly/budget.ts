@@ -20,3 +20,13 @@ export function fetchBudgets(): Promise<Array<Budget>> {
   .then(budgets => _.sortBy(budgets, ['name']));
 }
 
+export function getBudgetById(budgets: Budget[], id: string) {
+  for (const budget of budgets) {
+    if (budget.id === id) {
+      return budget;
+    }
+  }
+
+
+  throw new Error(`No Budget with the ID: ${id}`);
+}

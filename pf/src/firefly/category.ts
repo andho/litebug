@@ -20,3 +20,13 @@ export function fetchCategories(): Promise<Array<Category>> {
 }
 
 
+export function getCategoryById(categories: Category[], id: string) {
+  for (const category of categories) {
+    if (category.id === id) {
+      return category;
+    }
+  }
+
+
+  throw new Error(`No Category with the ID: ${id}`);
+}

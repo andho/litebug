@@ -64,3 +64,13 @@ export function refreshData() {
     accounts = newAccounts;
   });
 }
+
+export function getAccountById(accounts: Account[], id: string) {
+  for (const account of accounts) {
+    if (account.id === id) {
+      return account;
+    }
+  }
+
+  throw new Error(`No Account with the ID: ${id}`);
+}

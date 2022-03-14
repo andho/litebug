@@ -33,3 +33,14 @@ export function currencyFromAccount(account: Account) {
     decimal_places: account.currency_decimal_places,
   };
 }
+
+export function getCurrencyById(currencies: Currency[], id: string) {
+  for (const currency of currencies) {
+    if (currency.id === id) {
+      return currency;
+    }
+  }
+
+
+  throw new Error(`No Currency with the ID: ${id}`);
+}
