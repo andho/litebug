@@ -8,6 +8,7 @@ export enum FireflyActionType {
   UpdateCurrencies = 'update_currencies',
   UpdateBudgets = 'update_budgets',
   UpdateCategories = 'update_categories',
+  UpdateAll = 'update_all',
 }
 
 export interface FireflyActionUpdateAccounts {
@@ -30,11 +31,23 @@ export interface FireflyActionUpdateCategories {
   categories: Category[];
 }
 
+export interface FireflyActionUpdateAll {
+  type: FireflyActionType.UpdateAll,
+  data: {
+    categories: Category[],
+    budgets: Budget[],
+    currencies: Currency[],
+    accounts: Account[],
+  },
+};
+
+
 export type FireflyAction = (
   FireflyActionUpdateAccounts |
   FireflyActionUpdateCurrencies |
   FireflyActionUpdateBudgets |
-  FireflyActionUpdateCategories
+  FireflyActionUpdateCategories |
+  FireflyActionUpdateAll
 );
 
 export default (state: FireflyGlobalData, action: FireflyAction): FireflyGlobalData => {
@@ -59,13 +72,17 @@ export default (state: FireflyGlobalData, action: FireflyAction): FireflyGlobalD
         ...state,
         categories: action.categories,
       };
+    case FireflyActionType.UpdateAll:
+      return {
+        ...state,
+        ...action.data,
+      };
     default:
       return state;
   }
 };
 
 export interface FireflyGlobalData {
-  loading: boolean,
   accounts: Account[],
   currencies: Currency[],
   budgets: Budget[],

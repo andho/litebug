@@ -1,12 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import { FireflyProvider } from './firefly/context';
+import { ConfigProvider } from './config';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <ConfigProvider>
+    <FireflyProvider>
+      <App />
+    </FireflyProvider>
+    </ConfigProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

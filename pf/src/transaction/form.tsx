@@ -66,10 +66,14 @@ const defaults = {
 export default function Form() {
   const {
     state: {
-      accounts,
-      currencies,
-      budgets,
-      categories,
+      loading,
+      initialLoad,
+      data: {
+        accounts,
+        currencies,
+        budgets,
+        categories,
+      },
     },
     refreshData,
   } = React.useContext(FireflyContext);
@@ -88,7 +92,6 @@ export default function Form() {
   });
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
     const firstSource = data.transactions[0].source;
     const firstDestination = data.transactions[0].destination;
     if (firstSource === null || firstDestination === null) {
@@ -121,7 +124,6 @@ export default function Form() {
         group_title: data.group_title,
       };
 
-      console.log(transactionGroup);
       storeNewTransaction(transactionGroup).then(() => reset());
     }
   });
@@ -133,10 +135,6 @@ export default function Form() {
   const onRefresh = () => {
     refreshData();
   };
-
-  React.useEffect(() => {
-    refreshData();
-  }, []);
 
   const loadTransaction = (transactionId: string, description: string, index: number) => {
     fetchTransactionById(transactionId).then(transaction => {
@@ -297,7 +295,7 @@ interface AccountFieldProps extends StandardProps {
 }
 
 function AccountField(props: AccountFieldProps) {
-  const { state: { accounts: accountsData } }: { state: { accounts: Account[] } } = React.useContext(FireflyContext);
+  const { state: { data: { accounts: accountsData } } } = React.useContext(FireflyContext);
 
   const accounts = accountsData.filter(account => props.accountTypes.includes(account.type));
 
@@ -438,7 +436,7 @@ function CurrencyField({ control, label, index }: CurrencyProps) {
     control,
     name: `transactions.${index}.foreign_currency` as const,
   });
-  const { state: { currencies } } = React.useContext(FireflyContext);
+  const { state: { data: { currencies } } } = React.useContext(FireflyContext);
 
   // TODO: filter out the currency of the currently selected source account
 
@@ -471,7 +469,7 @@ function BudgetField({ control, index }: ControlledProps) {
     control,
     name: `transactions.${index}.budget` as const,
   });
-  const { state: { budgets } } = React.useContext(FireflyContext);
+  const { state: { data: { budgets } } } = React.useContext(FireflyContext);
 
   return (
     <Autocomplete
@@ -499,7 +497,7 @@ function CategoryField({ control, index }: ControlledProps) {
     control,
     name: `transactions.${index}.category` as const,
   });
-  const { state: { categories } } = React.useContext(FireflyContext);
+  const { state: { data: { categories } } } = React.useContext(FireflyContext);
 
   return (
     <Autocomplete
@@ -712,7 +710,6 @@ function GroupTitleField({ control }: { control: Control<FormValues> }) {
     control,
     name: 'transactions',
   });
-  console.log(transactions.length);
   const { field, fieldState } = useController({
     control,
     name: 'group_title',

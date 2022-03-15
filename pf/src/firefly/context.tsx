@@ -6,39 +6,95 @@ import { fetchCategories } from './category';
 import reducer, { FireflyGlobalData, FireflyActionType } from './reducer';
 
 export interface FireflyContextInterface {
-  state: FireflyGlobalData,
+  state: {
+    loading: boolean,
+    initialLoad: boolean,
+    data: FireflyGlobalData,
+  },
   refreshData: () => void,
 }
 
 export const initialState: FireflyContextInterface = {
   state: {
     loading: false,
-    accounts: [],
-    currencies: [],
-    budgets: [],
-    categories: [],
+    initialLoad: true,
+    data: {
+      accounts: [],
+      currencies: [],
+      budgets: [],
+      categories: [],
+    },
   },
   refreshData: () => {}
 };
 
+const GLOBAL_DATA_KEY = 'global-data';
+
 export const FireflyContext = React.createContext<FireflyContextInterface>(initialState);
 
 export const FireflyProvider: React.FC<{}> = ({ children, ...props }) => {
-  const [state, dispatch] = React.useReducer(reducer, initialState.state);
+  const [data, dispatch] = React.useReducer(reducer, initialState.state.data);
+  const [loading, setLoading] = React.useState(true);
+  const [initialLoad, setInitialLoad] = React.useState(true);
+
+  const loadFromStorage = () => {
+    setLoading(true);
+
+    const storedString = window.localStorage.getItem(GLOBAL_DATA_KEY);
+    if (typeof storedString !== 'string') {
+      refreshData();
+      return;
+    }
+
+    const data = JSON.parse(storedString) as FireflyGlobalData;
+    if (data.accounts.length === 0 ||
+      data.currencies.length === 0 ||
+      data.budgets.length === 0 ||
+      data.categories.length === 0
+    ) {
+      refreshData();
+      return;
+    }
+
+    dispatch({ type: FireflyActionType.UpdateAll, data });
+    setLoading(false);
+    setInitialLoad(false);
+  };
+
+  React.useEffect(() => {
+    loadFromStorage();
+  }, []);
+
+  React.useEffect(() => {
+    window.localStorage.setItem(GLOBAL_DATA_KEY, JSON.stringify(data));
+  }, [data]);
+
   const refreshData = () => {
-    fetchAccounts()
-      .then(accounts => {
+    return Promise.all([
+      fetchAccounts().then(accounts => {
         dispatch({ type: FireflyActionType.UpdateAccounts, accounts });
-      });
-    fetchCurrencies().then(currencies => {
-      dispatch({ type: FireflyActionType.UpdateCurrencies, currencies });
+      }),
+      fetchCurrencies().then(currencies => {
+        dispatch({ type: FireflyActionType.UpdateCurrencies, currencies });
+      }),
+      fetchBudgets().then(budgets => {
+        dispatch({ type: FireflyActionType.UpdateBudgets, budgets });
+      }),
+      fetchCategories().then(categories => {
+        dispatch({ type: FireflyActionType.UpdateCategories, categories });
+      }),
+    ]).then(() => {
+      setLoading(false);
+      setInitialLoad(false);
+    }).catch((error) => {
+      console.log(error);
     });
-    fetchBudgets().then(budgets => {
-      dispatch({ type: FireflyActionType.UpdateBudgets, budgets });
-    });
-    fetchCategories().then(categories => {
-      dispatch({ type: FireflyActionType.UpdateCategories, categories });
-    });
+  };
+
+  const state = {
+    loading,
+    initialLoad,
+    data,
   };
 
   return (
