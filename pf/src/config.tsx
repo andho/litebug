@@ -1,16 +1,20 @@
 import React from 'react';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, Grid, Box, Stack, Link,
+  Typography } from '@mui/material';
 import { AxiosInstance } from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 import fireflyApi, { FIREFLY_CONFIG_KEY } from './firefly/api';
 
 type Config = {
+  loading: boolean,
   fireflyPat: string | null,
   fireflyUrl: string | null,
   fireflyApi: AxiosInstance,
 };
 
 const initialConfig: Config = {
+  loading: true,
   fireflyPat: null,
   fireflyUrl: null,
   fireflyApi: fireflyApi,
@@ -32,11 +36,12 @@ export const ConfigProvider: React.FC<{}> = ({ children }) => {
   const loadData = () => {
     const dataString = window.localStorage.getItem(FIREFLY_CONFIG_KEY);
     if (!dataString) {
+      setConfig((current) => ({...current, loading: false}));
       return;
     }
 
     const data = JSON.parse(dataString) as Config;
-    setConfig(data);
+    setConfig({...data, loading: false});
   };
 
   React.useEffect(() => {
@@ -56,6 +61,7 @@ export const ConfigProvider: React.FC<{}> = ({ children }) => {
 };
 
 export function ConfigView() {
+  const navigate = useNavigate();
   const [fireflyPat, setFireflyPat] = React.useState('');
   const [fireflyUrl, setFireflyUrl] = React.useState('');
   const [patError, setPatError] = React.useState<string | null>(null);
@@ -67,6 +73,14 @@ export function ConfigView() {
     fireflyApi,
     setConfig
   } = React.useContext(ConfigContext); 
+
+  React.useEffect(() => {
+    if (configFireflyPat && configFireflyUrl) {
+      //navigate('/');
+    }
+    setFireflyPat(configFireflyPat ?? '');
+    setFireflyUrl(configFireflyUrl ?? '');
+  }, [configFireflyPat, configFireflyUrl]);
 
   const onSubmit = () => {
     if (!fireflyPat) {
@@ -86,28 +100,57 @@ export function ConfigView() {
     }
 
     setConfig({
+      loading: false,
       fireflyUrl,
       fireflyPat,
       fireflyApi,
     });
   };
+  const styles = { width: '400px' }
   return (
-    <>
-      <TextField
-        name="fireflyUrl"
-        label="Firefly URL"
-        value={fireflyUrl ?? configFireflyUrl}
-        onChange={(e) => setFireflyUrl(e.target.value)}
-      />
-      <TextField
-        name="fireflyPat"
-        label="Firefly PAT"
-        value={fireflyPat ?? configFireflyPat}
-        onChange={(e) => setFireflyPat(e.target.value)}
-        multiline
-        minRows="3"
-      />
-      <Button onClick={onSubmit}>Save</Button>
-    </>
+    <Stack alignItems='center' spacing={3} sx={{ mt: 4 }}>
+      <Box sx={styles}>
+        <Typography>
+          Hi. Welcome to litebug, a rapid data entry interface for firefly iii.
+          Fill up the form below to get started. You can find instructions to
+          create a PAT token <Link href="https://docs.firefly-iii.org/firefly-iii/api/#personal-access-token">here</Link>.
+        </Typography>
+      </Box>
+      <Box sx={styles}>
+        <TextField
+          name="fireflyUrl"
+          label="Firefly URL"
+          fullWidth
+          value={fireflyUrl ?? configFireflyUrl}
+          onChange={(e) => setFireflyUrl(e.target.value)}
+        />
+      </Box>
+      <Box sx={styles}>
+        <TextField
+          name="fireflyPat"
+          label="Firefly PAT"
+          fullWidth
+          value={fireflyPat ?? configFireflyPat}
+          onChange={(e) => setFireflyPat(e.target.value)}
+          multiline
+          minRows="12"
+          maxRows="12"
+        />
+      </Box>
+      <Box sx={styles}>
+        <Button fullWidth variant="contained" onClick={onSubmit}>Save</Button>
+      </Box>
+      <Box sx={styles}>
+        <Button
+          fullWidth
+          disabled={!configFireflyPat || !configFireflyUrl}
+          variant="contained"
+          color="error"
+          onClick={() => { navigate('/')}}
+        >
+          Cancel
+        </Button>
+      </Box>
+    </Stack>
   );
 }

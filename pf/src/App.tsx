@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container, Box, CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
+import { Routes, Route, Link, useNavigate, } from 'react-router-dom';
 
 import AdapterMoment from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
@@ -11,14 +12,32 @@ import theme from './theme';
 import './App.css';
 
 function AppContainer() {
-  const { fireflyPat, fireflyUrl } = React.useContext(ConfigContext); 
+  return (
+    <Routes>
+      <Route path="/" element={<AuthRequired><Form /></AuthRequired>} />
+      <Route path="/config" element={<ConfigView />} />
+    </Routes>
+  );
+}
 
-  if (!fireflyPat || !fireflyUrl ) {
-    return <ConfigView />;
+const AuthRequired = ({ children }: { children: JSX.Element }) => {
+  const { loading, fireflyPat, fireflyUrl } = React.useContext(ConfigContext); 
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    console.log(loading, fireflyPat, fireflyUrl);
+    if (!loading && (!fireflyPat || !fireflyUrl)) {
+      navigate('/config');
+    }
+  }, [loading, fireflyPat, fireflyUrl]);
+
+  if (loading) {
+    return <div>Please wait</div>;
   }
 
-  return <Form />;
+  return children;
 }
+
 
 function App() {
   return (

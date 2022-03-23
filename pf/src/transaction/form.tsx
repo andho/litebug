@@ -1,9 +1,13 @@
 import React from 'react';
 import { TextField, Autocomplete, Button, Box, Checkbox,
   RadioGroup, Radio, FormControlLabel, Grid, Paper,
-  AppBar, Typography, Divider } from '@mui/material';
+  AppBar, Typography, Divider, IconButton, Toolbar,
+  ToggleButton, ToggleButtonGroup } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { DatePicker } from '@mui/lab';
 import { useForm, useFieldArray, useWatch, Controller, useController, Control, Field } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import moment, { Moment } from 'moment';
 import _ from 'lodash';
@@ -80,6 +84,7 @@ export default function Form() {
     },
     refreshData,
   } = React.useContext(FireflyContext);
+  const navigate = useNavigate();
 
   const { handleSubmit, control, reset, formState, setValue, setFocus } = useForm<FormValues>({
     defaultValues: {
@@ -188,9 +193,17 @@ export default function Form() {
   return (
     <>
       <AppBar position="static">
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, m: 2 }}>
-          LiteBug
-        </Typography>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, m: 2 }}>
+            LiteBug
+          </Typography>
+          <IconButton onClick={()=>{navigate('/config')}} aria-label="Config">
+            <SettingsIcon />
+          </IconButton>
+          <IconButton onClick={onRefresh} aria-label="Refresh Data">
+            <RefreshIcon />
+          </IconButton>
+        </Toolbar>
       </AppBar>
       <form onSubmit={onSubmit}>
         <Box sx={{
@@ -209,7 +222,7 @@ export default function Form() {
                 <GroupTitleField control={control} />
                 <DateField control={control} />
               </Box>
-              <TaxFormula control={control} />
+              <TaxFormulaField control={control} />
               <Divider sx={{ my: 1 }} />
               <Summary control={control} />
               <Button fullWidth sx={{ mt: 2 }} variant="contained" type="submit">Submit</Button>
@@ -229,7 +242,7 @@ export default function Form() {
                 p: 2,
                 mt: index === 0 ? 0 : 2,
               }}>
-                <Grid container rowSpacing={2} columnSpacing={2} key={field.id}>
+                <Grid container rowSpacing={2} columnSpacing={2} key={field.id} sx={{ alignItems: "center" }}>
                   <Grid item xs={3}>
                     <DescriptionField {...{control, index, loadTransaction}} />
                   </Grid>
@@ -249,9 +262,9 @@ export default function Form() {
                     <CategoryField {...{control, index}} />
                   </Grid>
                   <Grid item xs={3}>
-                    <TaxRate {...{control, index}} />
+                    <TaxRateField {...{control, index}} />
                   </Grid>
-                  <Grid item xs={3}>
+                  <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'row-reverse' }}>
                     <Button
                       variant="contained"
                       onClick={() => remove(index)}
@@ -268,9 +281,6 @@ export default function Form() {
             <Box sx={{ px: 2 }}>
               <Button variant="outlined" onClick={addSplit}>Add another split</Button>
             </Box>
-            <Button onClick={onRefresh}>
-              Refresh Data
-            </Button><br />
           </Box>
         </Box>
       </form>
@@ -614,6 +624,7 @@ function AmountField({ control, index }: ControlledProps) {
   return (
     <TextField
       size="small"
+      fullWidth
       onChange={(value) => { field.onChange(value); }}
       value={field.value}
       error={fieldState.invalid}
@@ -638,18 +649,35 @@ function ForeignAmountField({ control, index }: ControlledProps) {
   );
 }
 
-function TaxRate({ control, index }: ControlledProps) {
+type TaxRateOptions = 'taxed' | 'zero-rated';
+
+function TaxRateField({ control, index }: ControlledProps) {
   const { field } = useController({
     control,
     name: `transactions.${index}.taxRate` as const,
   });
 
+  const handleChange = (value: TaxRateOptions) => {
+    console.log('Changed to ', value);
+    field.onChange(value==='taxed' ? true : false);
+  };
+
+  console.log(field.value);
   return (
-    <Checkbox
-      checked={field.value}
-      onChange={(e, value) => field.onChange(value)}
-      inputProps={{ 'aria-label': 'controlled' }}
-    />
+    <ToggleButtonGroup
+      value={field.value ? 'taxed' : 'zero-rated'}
+      exclusive
+      onChange={(e, value) => handleChange(value)}
+      aria-label="Tax Rate"
+      size="small"
+    >
+      <ToggleButton value="taxed" aria-label="Taxed">
+        Taxed
+      </ToggleButton>
+      <ToggleButton value="zero-rated" aria-label="Zero Rated">
+        Zero Rated
+      </ToggleButton>
+    </ToggleButtonGroup>
   );
 }
 
@@ -678,32 +706,27 @@ function DateField({ control }: { control: Control<FormValues> }) {
   );
 }
 
-function TaxFormula({ control }: { control: Control<FormValues> }) {
+function TaxFormulaField({ control }: { control: Control<FormValues> }) {
   const { field } = useController({
     control,
     name: 'taxFormula',
   });
 
   return (
-    <RadioGroup
-      row
-      name="taxType"
+    <ToggleButtonGroup
       value={field.value}
+      exclusive
       onChange={(e, value) => field.onChange(value)}
+      size="small"
+      fullWidth
     >
-      <FormControlLabel
+      <ToggleButton
         value="taxInclusive"
-        control={<Radio />}
-        label="Tax Inclusive"
-        labelPlacement="bottom"
-      />
-      <FormControlLabel
+      >Tax Inclusive</ToggleButton>
+      <ToggleButton
         value="taxExclusive"
-        control={<Radio />}
-        label="Tax Exclusive"
-        labelPlacement="bottom"
-      />
-    </RadioGroup>
+      >Tax Exclusive</ToggleButton>
+    </ToggleButtonGroup>
   );
 }
 

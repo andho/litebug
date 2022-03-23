@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter } from 'react-router-dom';
+
 import './index.css';
 import { FireflyProvider } from './firefly/context';
 import { ConfigProvider } from './config';
@@ -10,7 +12,9 @@ ReactDOM.render(
   <React.StrictMode>
     <ConfigProvider>
     <FireflyProvider>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </FireflyProvider>
     </ConfigProvider>
   </React.StrictMode>,
