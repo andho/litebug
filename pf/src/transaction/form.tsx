@@ -1,12 +1,15 @@
 import React from 'react';
 import { TextField, Autocomplete, Button, Box, Checkbox,
-  RadioGroup, Radio, FormControlLabel } from '@mui/material';
+  RadioGroup, Radio, FormControlLabel, Grid, Paper,
+  AppBar, Typography, Divider } from '@mui/material';
 import { DatePicker } from '@mui/lab';
 import { useForm, useFieldArray, useWatch, Controller, useController, Control, Field } from 'react-hook-form';
 
 import moment, { Moment } from 'moment';
 import _ from 'lodash';
 import currency from 'currency.js';
+
+import { nord } from '../theme';
 
 import { FireflyContext } from '../firefly/context';
 import { Account, AccountType, accountRoles, getAccountById } from '../firefly/accounts';
@@ -29,7 +32,7 @@ const defaultSourceTypes = [AccountType.Asset, AccountType.Revenue];
 const defaultDestinationTypes = [AccountType.Asset, AccountType.Expense];
 
 const sx = {
-  width: 300,
+  maxWidth: '100%',
 };
 
 type TransactionValues = {
@@ -78,7 +81,7 @@ export default function Form() {
     refreshData,
   } = React.useContext(FireflyContext);
 
-  const { handleSubmit, control, reset, formState, setValue } = useForm<FormValues>({
+  const { handleSubmit, control, reset, formState, setValue, setFocus } = useForm<FormValues>({
     defaultValues: {
       transactions: [{...defaults}],
       transactionDate: new Date(),
@@ -124,13 +127,21 @@ export default function Form() {
         group_title: data.group_title,
       };
 
-      storeNewTransaction(transactionGroup).then(() => reset());
+      const transactionDate = data.transactionDate;
+      storeNewTransaction(transactionGroup).then(() => {
+        reset();
+        setValue('transactionDate', transactionDate);
+      });
     }
   });
 
   const addSplit = () => {
     append({...defaults});
   };
+
+  React.useEffect(() => {
+    setFocus('transactions.0.description');
+  }, [setFocus]);
 
   const onRefresh = () => {
     refreshData();
@@ -175,37 +186,95 @@ export default function Form() {
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <Box sx={{ flexDirection: 'column', display: 'flex' }}>
-      {fields.map((field, index) => (
-        <Box key={field.id} sx={{ flexDirection: 'row', display: 'flex' }}>
-          <DescriptionField {...{control, index, loadTransaction}} />
-          <SourceAccountField {...{control, index}} />
-          <DestinationAccountField {...{control, index}} />
-          <AmountField {...{control, index}} />
-          <BudgetField {...{control, index}} />
-          <CategoryField {...{control, index}} />
-          <TaxRate {...{control, index}} />
-          <Button
-            variant="contained"
-            onClick={() => remove(index)}
-            size="small"
-          >
-            Remove
-          </Button>
+    <>
+      <AppBar position="static">
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, m: 2 }}>
+          LiteBug
+        </Typography>
+      </AppBar>
+      <form onSubmit={onSubmit}>
+        <Box sx={{
+          flexDirection: 'row',
+          display: 'flex',
+        }}>
+          <Box sx={{
+            maxWidth: 400,
+          }}>
+            <Box sx={{
+              m: 2
+            }}>
+              <Box sx={{
+                p: 2
+              }}>
+                <GroupTitleField control={control} />
+                <DateField control={control} />
+              </Box>
+              <TaxFormula control={control} />
+              <Divider sx={{ my: 1 }} />
+              <Summary control={control} />
+              <Button fullWidth sx={{ mt: 2 }} variant="contained" type="submit">Submit</Button>
+            </Box>
+          </Box>
+          <Box sx={{ flexGrow: 1 }}>
+            <Box
+              sx={{
+                flexDirection: 'column',
+                  display: 'flex',
+                  margin: 2,
+              }}
+            >
+            {fields.map((field, index) => (
+              <Paper elevation={1} sx={{
+                backgroundColor: nord.container,
+                p: 2,
+                mt: index === 0 ? 0 : 2,
+              }}>
+                <Grid container rowSpacing={2} columnSpacing={2} key={field.id}>
+                  <Grid item xs={3}>
+                    <DescriptionField {...{control, index, loadTransaction}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <SourceAccountField {...{control, index}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <DestinationAccountField {...{control, index}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <AmountField {...{control, index}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <BudgetField {...{control, index}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <CategoryField {...{control, index}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <TaxRate {...{control, index}} />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Button
+                      variant="contained"
+                      onClick={() => remove(index)}
+                      size="small"
+                      color="error"
+                    >
+                      Remove
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Paper>
+            ))}
+            </Box>
+            <Box sx={{ px: 2 }}>
+              <Button variant="outlined" onClick={addSplit}>Add another split</Button>
+            </Box>
+            <Button onClick={onRefresh}>
+              Refresh Data
+            </Button><br />
+          </Box>
         </Box>
-      ))}
-      </Box>
-      <Button variant="outlined" onClick={addSplit}>Add another split</Button>
-      <Button variant="contained" type="submit">Submit</Button>
-      <Button onClick={onRefresh}>
-        Refresh Data
-      </Button><br />
-      <GroupTitleField control={control} />
-      <DateField control={control} />
-      <TaxFormula control={control} />
-      <Summary control={control} />
-    </form>
+      </form>
+    </>
   );
 }
 
@@ -276,6 +345,7 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
       renderInput={(params) => (
         <TextField
           {...params}
+          inputRef={field.ref}
           label="Description"
           error={fieldState.invalid}
           helperText={fieldState.error?.message}
@@ -592,12 +662,15 @@ function DateField({ control }: { control: Control<FormValues> }) {
 
   return (
     <DatePicker
-      label="Date"
+      label="Transaction Date"
       value={field.value}
       onChange={field.onChange}
       renderInput={(params) => (
         <TextField
           {...params}
+          size="small"
+          fullWidth
+          sx={{ mt: 2 }}
           error={fieldState.invalid}
         />
       )}
@@ -686,21 +759,46 @@ function Summary({ control }: { control: Control<FormValues>}) {
 
   return (
     <>
+      <Typography variant="h6" component="h6" sx={{ mb: 1, mt: 2 }}>Summary</Typography>
       <div>
         {transactions.map((transaction, index) => (
-          <div key={index}>
-            <span>{transaction.description}</span>&nbsp;
-            <span>{transaction.beforeTax.value}</span>&nbsp;
-            <span>{transaction.tax.value}</span>&nbsp;
-            <span>{transaction.afterTax.value}</span>&nbsp;
-          </div>
+          <Grid container 
+            key={index} 
+            sx={{
+              backgroundColor: (index % 2)!==0 ? nord.container : '',
+              px: 1,
+              py: 0.5,
+            }}
+          >
+            <Grid item xs={8}>
+              <Typography variant="body1">{
+                transaction.description ||
+                `<Transaction ${index+1}>`
+              }</Typography>
+            </Grid>
+            <Grid item xs={1} sx={{ textAlign: 'right' }}>
+              <Typography variant="body1">{''+transaction.tax}</Typography>
+            </Grid>
+            <Grid item xs={3} sx={{ textAlign: 'right' }}>
+              <Typography variant="body1">{''+transaction.afterTax}</Typography>
+            </Grid>
+          </Grid>
         ))}
       </div>
-      <div>Total: 
-        <span>{gross.value}</span>&nbsp;
-        <span>{tax.value}</span>&nbsp;
-        <span>{total.value}</span>&nbsp;
-      </div>
+      <Divider sx={{ my: 1 }} />
+      <Grid container sx={{
+        px: 1,
+      }}>
+        <Grid item xs={8}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Total</Typography>
+        </Grid>
+        <Grid item xs={1} sx={{ textAlign: 'right', fontWeight: 'bold' }}>
+          <Typography variant="body1">{''+tax}</Typography>
+        </Grid>
+        <Grid item xs={3} sx={{ textAlign: 'right', fontWeight: 'bold' }}>
+          <Typography variant="body1">{''+total}</Typography>
+        </Grid>
+      </Grid>
     </>
   );
 }
@@ -718,6 +816,9 @@ function GroupTitleField({ control }: { control: Control<FormValues> }) {
 
   return (
     <TextField
+      label="Group Title"
+      size="small"
+      fullWidth
       value={field.value || ''}
       onChange={(e) => field.onChange(e.target.value)}
       error={fieldState.invalid}

@@ -1,19 +1,14 @@
 import React from 'react';
 import { Container, Box, CssBaseline } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 
 import AdapterMoment from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 
 import { ConfigContext, ConfigView } from './config';
 import Form from './transaction/form';
+import theme from './theme';
 import './App.css';
-
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
 
 function AppContainer() {
   const { fireflyPat, fireflyUrl } = React.useContext(ConfigContext); 
@@ -27,7 +22,7 @@ function AppContainer() {
 
 function App() {
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterMoment}>
         <AppContainer/>
