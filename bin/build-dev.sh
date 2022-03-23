@@ -15,4 +15,3 @@ RUN apt-get install -y inotify-tools
 buildah commit $ctr1 node-dev
 
 trap "buildah rm $ctr1" EXIT
-

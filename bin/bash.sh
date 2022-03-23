@@ -3,5 +3,5 @@
 podman run --rm -it \
     -v $HOME/.dockercache/yarn:/home/node/.yarn \
     -v $(pwd):/app \
-    -w /app/pf \
+    -w /app \
     node-dev bash
