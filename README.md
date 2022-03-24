@@ -11,7 +11,7 @@ use litebug with it.
 
 - Litebug auto fills all fields based on the transaction you choose from the
   description autocomplete field.
-- Litebug allows you to specify is an item is tax exempt or not. Currently
+- Litebug allows you to specify if an item is tax exempt or not. Currently
   different tax rates are not supported.
 - Litebug shows you transaction group total for split transactions.
 
