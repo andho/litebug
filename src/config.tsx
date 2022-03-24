@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, Button, Grid, Box, Stack, Link,
+import { TextField, Button, Box, Stack, Link,
   Typography } from '@mui/material';
 import { AxiosInstance } from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -123,6 +123,7 @@ export function ConfigView() {
           fullWidth
           value={fireflyUrl ?? configFireflyUrl}
           onChange={(e) => setFireflyUrl(e.target.value)}
+          helperText={urlError}
         />
       </Box>
       <Box sx={styles}>
@@ -135,6 +136,7 @@ export function ConfigView() {
           multiline
           minRows="12"
           maxRows="12"
+          helperText={patError}
         />
       </Box>
       <Box sx={styles}>

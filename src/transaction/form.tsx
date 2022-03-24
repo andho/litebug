@@ -1,15 +1,14 @@
 import React from 'react';
-import { TextField, Autocomplete, Button, Box, Checkbox,
-  RadioGroup, Radio, FormControlLabel, Grid, Paper,
+import { TextField, Autocomplete, Button, Box,
+  Grid, Paper,
   AppBar, Typography, Divider, IconButton, Toolbar,
   ToggleButton, ToggleButtonGroup } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { DatePicker } from '@mui/lab';
-import { useForm, useFieldArray, useWatch, Controller, useController, Control, Field } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, useController, Control, } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
-import moment, { Moment } from 'moment';
 import _ from 'lodash';
 import currency from 'currency.js';
 
@@ -17,15 +16,13 @@ import { nord } from '../theme';
 
 import { FireflyContext } from '../firefly/context';
 import { Account, AccountType, accountRoles, getAccountById } from '../firefly/accounts';
-import { Currency, getCurrencyById } from '../firefly/currency';
+import { Currency, } from '../firefly/currency';
 import { Budget, getBudgetById } from '../firefly/budget';
 import { Category, getCategoryById } from '../firefly/category';
 import {
   RawTransaction,
   TransactionGroup,
-  Transaction,
   storeNewTransaction,
-  TransactionType,
   TransactionAutocomplete,
   transactionAutocomplete,
   fetchTransactionById,
@@ -73,11 +70,8 @@ const defaults = {
 export default function Form() {
   const {
     state: {
-      loading,
-      initialLoad,
       data: {
         accounts,
-        currencies,
         budgets,
         categories,
       },
@@ -86,7 +80,7 @@ export default function Form() {
   } = React.useContext(FireflyContext);
   const navigate = useNavigate();
 
-  const { handleSubmit, control, reset, formState, setValue, setFocus } = useForm<FormValues>({
+  const { handleSubmit, control, reset, setValue, setFocus } = useForm<FormValues>({
     defaultValues: {
       transactions: [{...defaults}],
       transactionDate: new Date(),
@@ -304,7 +298,6 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
     rules: { required: true },
   });
 
-  let request: ReturnType<typeof setTimeout>;
   const loadOptions = (input: string) => {
     return transactionAutocomplete(input);
   };
@@ -503,42 +496,6 @@ function DestinationAccountField({ control, index }: ControlledProps) {
   );
 }
 
-const currencies = [
-  { code: 'MVR', shortName: 'Rufiya', name: 'Maldivian Rufiya', label: 'MVR' }
-];
-
-type CurrencyProps = StandardProps & ControlledProps & {
-  name: 'foreign_currency',
-};
-
-function CurrencyField({ control, label, index }: CurrencyProps) {
-  const { field, fieldState } = useController({
-    control,
-    name: `transactions.${index}.foreign_currency` as const,
-  });
-  const { state: { data: { currencies } } } = React.useContext(FireflyContext);
-
-  // TODO: filter out the currency of the currently selected source account
-
-  return (
-    <Autocomplete
-      size="small"
-      sx={{ ...sx }}
-      options={currencies}
-      getOptionLabel={currency => currency.name}
-      onChange={(e, value) => { field.onChange(value); }}
-      value={field.value}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Foreign Currency"
-          error={fieldState.invalid}
-        />)
-      }
-    />
-  );
-}
-
 interface StandardProps {
   id?: string;
   label?: string;
@@ -600,21 +557,6 @@ function CategoryField({ control, index }: ControlledProps) {
   );
 }
 
-const tags = [
-  { label: 'pending' },
-];
-
-function TagsField(props: StandardProps) {
-  return (
-    <Autocomplete
-      size="small"
-      sx={{ ...sx }}
-      options={tags}
-      renderInput={(params) => <TextField {...params} label={props.label || props.id} />}
-    />
-  );
-}
-
 function AmountField({ control, index }: ControlledProps) {
   const { field, fieldState } = useController({
     control,
@@ -629,22 +571,6 @@ function AmountField({ control, index }: ControlledProps) {
       value={field.value}
       error={fieldState.invalid}
       label="Amount"
-    />
-  );
-}
-
-function ForeignAmountField({ control, index }: ControlledProps) {
-  const { field, fieldState } = useController({
-    control,
-    name: `transactions.${index}.foreign_amount` as const,
-  });
-  return (
-    <TextField
-      size="small"
-      onChange={(value) => { field.onChange(value); }}
-      value={field.value}
-      error={fieldState.invalid}
-      label="Foreign Amount"
     />
   );
 }
@@ -772,7 +698,7 @@ function Summary({ control }: { control: Control<FormValues>}) {
     };
   });
 
-  const { gross, tax, total } = transactions.reduce((acc, transaction) => {
+  const { tax, total, } = transactions.reduce((acc, transaction) => {
     return {
       gross: acc.gross.add(transaction.beforeTax),
       tax: acc.tax.add(transaction.tax),

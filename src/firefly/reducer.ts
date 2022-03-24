@@ -50,7 +50,7 @@ export type FireflyAction = (
   FireflyActionUpdateAll
 );
 
-export default (state: FireflyGlobalData, action: FireflyAction): FireflyGlobalData => {
+export default function reducer(state: FireflyGlobalData, action: FireflyAction): FireflyGlobalData {
   switch (action.type) {
     case FireflyActionType.UpdateAccounts:
       return {
@@ -80,7 +80,7 @@ export default (state: FireflyGlobalData, action: FireflyAction): FireflyGlobalD
     default:
       return state;
   }
-};
+}
 
 export interface FireflyGlobalData {
   accounts: Account[],

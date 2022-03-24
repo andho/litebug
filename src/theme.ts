@@ -1,24 +1,5 @@
 import { createTheme } from '@mui/material/styles';
 
-const style = {
-  palette: {
-    palette: {
-      background: {
-        default: '#434C5E',
-      },
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          fontSize: '1rem',
-        },
-      },
-    },
-  },
-};
-
 export const nord = {
   background: '#434C5E',
   container: '#4C566A',

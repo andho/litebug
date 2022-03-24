@@ -1,5 +1,4 @@
 import fireflyApi from './api';
-import _ from 'lodash';
 import moment, { Moment } from 'moment';
 
 import { Account, AccountType } from './accounts';

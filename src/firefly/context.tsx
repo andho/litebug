@@ -37,7 +37,29 @@ export const FireflyProvider: React.FC<{}> = ({ children, ...props }) => {
   const [loading, setLoading] = React.useState(true);
   const [initialLoad, setInitialLoad] = React.useState(true);
 
-  const loadFromStorage = () => {
+  const refreshData = React.useCallback(() => {
+    return Promise.all([
+      fetchAccounts().then(accounts => {
+        dispatch({ type: FireflyActionType.UpdateAccounts, accounts });
+      }),
+      fetchCurrencies().then(currencies => {
+        dispatch({ type: FireflyActionType.UpdateCurrencies, currencies });
+      }),
+      fetchBudgets().then(budgets => {
+        dispatch({ type: FireflyActionType.UpdateBudgets, budgets });
+      }),
+      fetchCategories().then(categories => {
+        dispatch({ type: FireflyActionType.UpdateCategories, categories });
+      }),
+    ]).then(() => {
+      setLoading(false);
+      setInitialLoad(false);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }, [dispatch, setLoading, setInitialLoad]);
+
+  const loadFromStorage = React.useCallback(() => {
     setLoading(true);
 
     const storedString = window.localStorage.getItem(GLOBAL_DATA_KEY);
@@ -59,37 +81,15 @@ export const FireflyProvider: React.FC<{}> = ({ children, ...props }) => {
     dispatch({ type: FireflyActionType.UpdateAll, data });
     setLoading(false);
     setInitialLoad(false);
-  };
+  }, [setLoading, dispatch, setInitialLoad, refreshData]);
 
   React.useEffect(() => {
     loadFromStorage();
-  }, []);
+  }, [loadFromStorage]);
 
   React.useEffect(() => {
     window.localStorage.setItem(GLOBAL_DATA_KEY, JSON.stringify(data));
   }, [data]);
-
-  const refreshData = () => {
-    return Promise.all([
-      fetchAccounts().then(accounts => {
-        dispatch({ type: FireflyActionType.UpdateAccounts, accounts });
-      }),
-      fetchCurrencies().then(currencies => {
-        dispatch({ type: FireflyActionType.UpdateCurrencies, currencies });
-      }),
-      fetchBudgets().then(budgets => {
-        dispatch({ type: FireflyActionType.UpdateBudgets, budgets });
-      }),
-      fetchCategories().then(categories => {
-        dispatch({ type: FireflyActionType.UpdateCategories, categories });
-      }),
-    ]).then(() => {
-      setLoading(false);
-      setInitialLoad(false);
-    }).catch((error) => {
-      console.log(error);
-    });
-  };
 
   const state = {
     loading,

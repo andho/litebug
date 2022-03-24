@@ -1,7 +1,7 @@
 import React from 'react';
-import { Container, Box, CssBaseline } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
-import { Routes, Route, Link, useNavigate, } from 'react-router-dom';
+import { Routes, Route, useNavigate, } from 'react-router-dom';
 
 import AdapterMoment from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
@@ -29,7 +29,7 @@ const AuthRequired = ({ children }: { children: JSX.Element }) => {
     if (!loading && (!fireflyPat || !fireflyUrl)) {
       navigate('/config');
     }
-  }, [loading, fireflyPat, fireflyUrl]);
+  }, [loading, fireflyPat, fireflyUrl, navigate]);
 
   if (loading) {
     return <div>Please wait</div>;
