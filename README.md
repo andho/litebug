@@ -1,3 +1,5 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/73babb1a-c278-4c8d-bf94-752c78ba6b5d/deploy-status)](https://app.netlify.com/sites/cheery-bunny-5ab5d6/deploys)
+
 Litebug is a rapid data entry interface for [Firefly
 iii](https://www.firefly-iii.org/).
 
