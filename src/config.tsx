@@ -105,6 +105,8 @@ export function ConfigView() {
       fireflyPat,
       fireflyApi,
     });
+
+    navigate('/');
   };
   const styles = { width: '400px' }
   return (
