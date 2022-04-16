@@ -1,4 +1,4 @@
-import fireflyApi from './api';
+import { fetchListUntilLastPage } from './api';
 import _ from 'lodash';
 
 export interface Category {
@@ -7,8 +7,8 @@ export interface Category {
 }
 
 export function fetchCategories(): Promise<Array<Category>> {
-  return fireflyApi.get('/api/v1/categories')
-  .then(response => response.data.data.map(
+  return fetchListUntilLastPage('/api/v1/categories')
+  .then(data => data.map(
     (category: any): Category => {
       return {
         id: category.id,

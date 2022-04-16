@@ -1,4 +1,4 @@
-import fireflyApi from './api';
+import { fetchListUntilLastPage } from './api';
 import _ from 'lodash';
 
 export interface Budget {
@@ -8,8 +8,8 @@ export interface Budget {
 }
 
 export function fetchBudgets(): Promise<Array<Budget>> {
-  return fireflyApi.get('/api/v1/budgets')
-  .then(response => response.data.data.map(
+  return fetchListUntilLastPage('/api/v1/budgets')
+  .then(data => data.map(
     (budget: any): Budget => {
       return {
         id: budget.id,

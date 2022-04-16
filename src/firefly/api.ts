@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 export const FIREFLY_CONFIG_KEY = 'firefly-config';
 const fireflyApi = axios.create({
@@ -31,5 +31,19 @@ fireflyApi.interceptors.request.use(
     return Promise.reject(error);
   },
 );
+
+export async function fetchListUntilLastPage(initialUrl: string): Promise<any[]> {
+  const reducer = async (data: any[], previousResponse: AxiosResponse): Promise<any[]> => {
+    if (!previousResponse.data.links.next) {
+      return data;
+    }
+
+    const response = await fireflyApi.get(previousResponse.data.links.next);
+    return reducer(data.concat(response.data.data), response);
+  };
+
+  const firstResponse = await fireflyApi.get(initialUrl);
+  return reducer(firstResponse.data.data, firstResponse);
+}
 
 export default fireflyApi;

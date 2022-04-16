@@ -1,4 +1,4 @@
-import fireflyApi from './api';
+import { fetchListUntilLastPage } from './api';
 import _ from 'lodash';
 
 export enum AccountType {
@@ -38,8 +38,8 @@ export interface Account {
 }
 
 export function fetchAccounts(): Promise<Array<Account>> {
-  return fireflyApi.get('/api/v1/accounts')
-  .then(response => response.data.data.map(
+  return fetchListUntilLastPage('/api/v1/accounts')
+  .then(data => data.map(
     (account: any): Account => {
       return {
         id: account.id,

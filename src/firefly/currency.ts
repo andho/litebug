@@ -1,4 +1,4 @@
-import fireflyApi from './api';
+import { fetchListUntilLastPage } from './api';
 import _ from 'lodash';
 
 import { Account } from './accounts';
@@ -12,8 +12,8 @@ export interface Currency {
 }
 
 export function fetchCurrencies(): Promise<Array<Currency>> {
-  return fireflyApi.get('/api/v1/currencies')
-  .then(response => response.data.data.map(
+  return fetchListUntilLastPage('/api/v1/currencies')
+  .then(data => data.map(
     (currency: any): Currency => {
       return {
         id: currency.id,
