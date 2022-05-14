@@ -344,7 +344,6 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
       filterOptions={x => x}
       freeSolo
       autoHighlight
-      autoSelect
       renderInput={(params) => (
         <TextField
           {...params}
