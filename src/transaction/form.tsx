@@ -311,6 +311,7 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
         setLoading(false);
       });
     }
+    field.onChange(input);
     setInputValue(input);
   };
 
@@ -322,7 +323,6 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
           field.onChange(value.description);
           return;
         }
-        field.onChange(value);
       }}
       size="small"
       sx={{ ...sx }}
