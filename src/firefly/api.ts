@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { Config as FireflyConfig } from '../config';
 
 export const FIREFLY_CONFIG_KEY = 'firefly-config';
 const fireflyApi = axios.create({
@@ -10,8 +11,8 @@ fireflyApi.interceptors.request.use(
   (config) => {
     let fireflyConfig;
     try {
-      fireflyConfig = JSON.parse(window.localStorage.getItem(FIREFLY_CONFIG_KEY) ?? '');
-      if (!fireflyConfig.fireflyPat || !fireflyConfig.fireflyUrl) {
+      fireflyConfig = JSON.parse(window.localStorage.getItem(FIREFLY_CONFIG_KEY) ?? '') as FireflyConfig;
+      if ((!fireflyConfig.fireflyPat && !fireflyConfig.fireflyAccessToken) || !fireflyConfig.fireflyUrl) {
         throw new Error("Invalid Firefly Config");
       }
     } catch (e) {
@@ -24,7 +25,13 @@ fireflyApi.interceptors.request.use(
     }
 
     config.url = '' + new URL(config.url ?? '', fireflyConfig.fireflyUrl);
-    config.headers = { Authorization: 'Bearer ' + fireflyConfig.fireflyPat };
+
+    if (fireflyConfig.fireflyAccessToken) {
+      config.headers = { Authorization: 'Bearer ' + fireflyConfig.fireflyAccessToken };
+    } else {
+      config.headers = { Authorization: 'Bearer ' + fireflyConfig.fireflyPat };
+    }
+
     return config;
   },
   (error) => {

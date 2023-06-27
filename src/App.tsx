@@ -10,26 +10,29 @@ import { ConfigContext, ConfigView } from './config';
 import Form from './transaction/form';
 import theme from './theme';
 import './App.css';
+import Oauth from './config/oauth-config';
+import OAuthHandle from './config/oauth-handle';
 
 function AppContainer() {
   return (
     <Routes>
       <Route path="/" element={<AuthRequired><Form /></AuthRequired>} />
       <Route path="/config" element={<ConfigView />} />
+      <Route path="/oauth" element={<Oauth />} />
+      <Route path="/oauth/handle" element={<OAuthHandle />} />
     </Routes>
   );
 }
 
 const AuthRequired = ({ children }: { children: JSX.Element }) => {
-  const { loading, fireflyPat, fireflyUrl } = React.useContext(ConfigContext); 
+  const { loading, fireflyPat, fireflyUrl, fireflyAccessToken } = React.useContext(ConfigContext); 
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    console.log(loading, fireflyPat, fireflyUrl);
-    if (!loading && (!fireflyPat || !fireflyUrl)) {
+    if (!loading && ((!fireflyPat && !fireflyAccessToken) || !fireflyUrl)) {
       navigate('/config');
     }
-  }, [loading, fireflyPat, fireflyUrl, navigate]);
+  }, [loading, fireflyPat, fireflyUrl, fireflyAccessToken, navigate]);
 
   if (loading) {
     return <div>Please wait</div>;
