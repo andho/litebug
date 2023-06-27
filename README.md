@@ -49,3 +49,15 @@ The development server will be running on port 3000.
 - Lock screen.
 - Encrypt local data.
 - Maybe some way to specify quantity.
+
+
+- Scroll to out of view transaction when new split is added
+- Copy over Budget and Allowance from previous transaction when new split is
+  added.
+- Allow to enter freetext for account if it matches the rules
+- Ask "Are you sure you want to remove when removing filled in transaction".
+- Rehydrate taxRate from transaction.
+- debounce description
+- savings account not showing up in source account
+
+- need to load paginated data when loading the global data
