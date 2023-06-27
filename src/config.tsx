@@ -21,7 +21,7 @@ export type Config = {
 };
 
 const initialConfig: Config = {
-  loading: true,
+  loading: false,
   fireflyApi: fireflyApi,
 };
 
