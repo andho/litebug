@@ -38,8 +38,8 @@ const sx = {
 
 type TransactionValues = {
   description: string,
-  source: Account | null,
-  destination: Account | null,
+  source: Account | string | null,
+  destination: Account | string | null,
   amount: string,
   foreign_currency: Currency | null,
   foreign_amount: string | null,
@@ -66,6 +66,22 @@ const defaults = {
   category: null,
   taxRate: true,
 };
+
+function getCurrency(thisTxAccount: Account | string | null, firstAccount: Account | string) {
+  const account = thisTxAccount && typeof thisTxAccount !== 'string' ? thisTxAccount : firstAccount;
+
+  if (typeof account === 'string') {
+    return;
+  }
+
+  return {
+    id: account.currency_id,
+    name: '',
+    code: account.currency_code,
+    symbol: account.currency_symbol,
+    decimal_places: account.currency_decimal_places,
+  } as Currency;
+}
 
 export default function Form() {
   const {
@@ -110,13 +126,7 @@ export default function Form() {
         category: transaction.category,
         amount: ""+taxFormula(transaction).afterTax.value,
         date: data.transactionDate,
-        currency: {
-          id: transaction.source?.currency_id ?? firstSource.currency_id,
-          name: '',
-          code: transaction.source?.currency_code ?? firstSource.currency_code,
-          symbol: transaction.source?.currency_symbol ?? firstSource.currency_symbol,
-          decimal_places: transaction.source?.currency_decimal_places ?? firstSource.currency_decimal_places,
-        } as Currency,
+        currency: getCurrency(transaction.source, firstSource),
         tags: transaction.taxRate ? ['gst-inclusive'] : [],
         type: getTransactionType(transaction.source || firstSource, transaction.destination || firstDestination),
       }));
@@ -132,7 +142,7 @@ export default function Form() {
         setValue('transactionDate', transactionDate);
       });
     }
-  });
+  }, (error) => console.log('errors', error));
 
   const addSplit = () => {
     append({...defaults});
@@ -360,9 +370,9 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
 interface AccountFieldProps extends StandardProps {
   accountTypes: AccountType[],
   name: string,
-  value: Account | null,
-  onChange: (value: Account | null) => void,
-  error: any | null,
+  value: Account | string | null,
+  onChange: (value: Account | string | null) => void,
+  error?: string,
   disabled: boolean,
 }
 
@@ -376,7 +386,7 @@ function AccountField(props: AccountFieldProps) {
       size="small"
       sx={{ ...sx }}
       options={accounts}
-      getOptionLabel={account => account.name}
+      getOptionLabel={account => typeof account !== 'string' ? account.name : account}
       groupBy={(account: Account) => {
         if (account.type === AccountType.Asset && account.account_role) {
           return 'Asset: ' + accountRoles[account.account_role];
@@ -399,13 +409,18 @@ function AccountField(props: AccountFieldProps) {
       onChange={(e, value) => {
         props.onChange(value);
       }}
+      onInputChange={(e, value) => {
+        props.onChange(value);
+      }}
       disabled={props.disabled}
       autoHighlight
+      freeSolo
       renderInput={(params) => (
         <TextField
           {...params}
           label={props.label || props.name}
-          error={props.error}
+          error={!!props.error}
+          helperText={props.error}
         />)
       }
     />
@@ -427,20 +442,20 @@ function SourceAccountField({ control, index }: ControlledProps) {
     control,
   });
   const accountTypes = (
-    index === 0 && destination?.type === AccountType.Expense ? [AccountType.Asset] : defaultSourceTypes
+    index === 0 && typeof destination !== 'string' && destination?.type === AccountType.Expense ? [AccountType.Asset] : defaultSourceTypes
   ) || (
-    index !== 0 && source && [source.type]
+    index !== 0 && typeof source !== 'string' && source ? [source.type] : defaultSourceTypes
   );
 
   let disabled = false;
-  if (index !== 0 && source?.type === AccountType.Asset) {
+  if (index !== 0 && typeof source !== 'string' && source?.type === AccountType.Asset) {
     disabled = true;
   }
 
   const { field, fieldState } = useController({
     control,
     name: `transactions.${index}.source` as const,
-    rules: { required: !disabled },
+    rules: { required: !disabled && 'This field is required' },
   });
 
   return (
@@ -451,7 +466,7 @@ function SourceAccountField({ control, index }: ControlledProps) {
       disabled={disabled}
       label="Source Account"
       accountTypes={accountTypes}
-      error={fieldState.invalid}
+      error={fieldState.error?.message}
     />
   );
 }
@@ -465,11 +480,11 @@ function DestinationAccountField({ control, index }: ControlledProps) {
     ],
     control,
   });
-  const accountTypes = source?.type === AccountType.Revenue ? [AccountType.Asset] : defaultDestinationTypes;
+  const accountTypes = typeof source !== 'string' && source?.type === AccountType.Revenue ? [AccountType.Asset] : defaultDestinationTypes;
 
   let disabled = false;
-  if (index !== 0 && source) {
-    if (source.type === AccountType.Asset && destination?.type === AccountType.Asset) {
+  if (index !== 0 && source && typeof source !== 'string') {
+    if (source.type === AccountType.Asset && typeof destination !== 'string' && destination?.type === AccountType.Asset) {
       disabled = true;
     } else if (source.type === AccountType.Revenue) {
       disabled = true;
@@ -489,7 +504,7 @@ function DestinationAccountField({ control, index }: ControlledProps) {
       onChange={field.onChange}
       label="Destination Account"
       accountTypes={accountTypes}
-      error={fieldState.invalid}
+      error={fieldState.error?.message}
       disabled={disabled}
     />
   );

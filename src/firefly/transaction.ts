@@ -47,7 +47,7 @@ export interface Transaction {
   source: Account;
   destination: Account;
   date: Date;
-  currency: Currency;
+  currency?: Currency;
   amount: string;
   foreign_currency: Currency | null;
   foreign_amount: string | null;
@@ -70,9 +70,9 @@ export function storeNewTransaction(transactionGroup: TransactionGroup) {
     transactions: transactionGroup.transactions.map((t: Transaction) => ({
       amount: t.amount,
       destination_id: t.destination?.id || firstDestination.id,
-      destination_name: t.destination?.name || firstDestination.name,
+      destination_name: typeof t.destination === 'string' ? t.destination : t.destination?.name || firstDestination.name,
       souce_id: t.source?.id || firstSource.id,
-      source_name: t.source?.name || firstSource.name,
+      source_name: typeof t.source === 'string' ? t.source : t.source?.name || firstSource.name,
       budget_id: t.budget?.id,
       category_name: t.category?.name,
       date: moment(t.date).format('YYYY-MM-DD'),
@@ -127,9 +127,9 @@ export function fetchTransactionById(id: string) {
   });
 }
 
-export function getTransactionType(source: Account, destination: Account) {
-  if (source.type === AccountType.Asset) {
-    if (destination.type === AccountType.Asset) {
+export function getTransactionType(source: Account | string, destination: Account | string) {
+  if (typeof source !== 'string' && source.type === AccountType.Asset) {
+    if (typeof destination !== 'string' && destination.type === AccountType.Asset) {
       return TransactionType.Transfer;
     }
 
