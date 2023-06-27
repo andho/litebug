@@ -10,6 +10,7 @@ import { generateCodeChallenge, generateCodeVerifier } from '../crypto';
 type OAuthData = {
   fireflyUrl: string;
   fireflyClientId: string;
+  fireflyRedirectUri: string;
 };
 
 export function OAuthConfigView() {
@@ -19,6 +20,7 @@ export function OAuthConfigView() {
     defaultValues: {
       fireflyUrl: config.fireflyUrl,
       fireflyClientId: config.fireflyClientId,
+      fireflyRedirectUri: config.fireflyRedirectUri,
     },
   });
 
@@ -30,7 +32,7 @@ export function OAuthConfigView() {
         loading: false,
         ...data,
       });
-      const redirect_uri = encodeURIComponent('http://localhost:3000/oauth/handle');
+      const redirect_uri = encodeURIComponent(data.fireflyRedirectUri);
       const code_verifier = generateCodeVerifier();
       window.sessionStorage.setItem('code_verifier', code_verifier);
       const code_challenge = await generateCodeChallenge(code_verifier);
@@ -66,7 +68,8 @@ export function OAuthConfigView() {
               fullWidth
               value={value}
               onChange={onChange}
-              helperText={error}
+              helperText={error?.message}
+              error={!!error}
             />
           )}/>
       </Box>
@@ -74,7 +77,7 @@ export function OAuthConfigView() {
         <Controller
           control={control}
           name="fireflyClientId"
-          rules={{ required: "Firefly URL is required" }}
+          rules={{ required: "Firefly Client ID is required" }}
           render={({ field: { value, onChange }, fieldState: { error } }) => (
             <TextField
               name="fireflyClientId"
@@ -82,7 +85,25 @@ export function OAuthConfigView() {
               fullWidth
               value={value}
               onChange={onChange}
-              helperText={error}
+              helperText={error?.message}
+              error={!!error}
+            />
+          )}/>
+      </Box>
+      <Box sx={styles}>
+        <Controller
+          control={control}
+          name="fireflyRedirectUri"
+          rules={{ required: "Firefly Redirect URI is required" }}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <TextField
+              name="fireflyRedirectUri"
+              label="Firefly Redirect URI"
+              fullWidth
+              value={value}
+              onChange={onChange}
+              helperText={error?.message}
+              error={!!error}
             />
           )}/>
       </Box>

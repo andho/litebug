@@ -15,6 +15,7 @@ export type Config = {
   fireflyUrl?: string,
   fireflyApi: AxiosInstance,
   fireflyClientId?: string,
+  fireflyRedirectUri?: string,
   fireflyAccessToken?: string;
   fireflyRefreshToken?: string;
 };

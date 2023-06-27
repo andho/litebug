@@ -39,7 +39,7 @@ const OAuthHandle = () => {
             client_id: config.fireflyClientId,
             code_verifier,
             code,
-            redirect_uri: `http://localhost:3000/oauth/handle`,
+            redirect_uri: config.fireflyRedirectUri,
           },
         });
 
