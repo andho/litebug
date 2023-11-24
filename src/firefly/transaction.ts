@@ -5,6 +5,7 @@ import { Account, AccountType } from './accounts';
 import { Budget } from './budget';
 import { Category } from './category';
 import { Currency } from './currency';
+import { isNewOption } from '../transaction/fields/common';
 
 export enum TransactionType {
   Transfer = 'transfer',
@@ -44,8 +45,8 @@ export interface RawTransaction {
 
 export interface Transaction {
   description: string;
-  source: Account;
-  destination: Account;
+  source: Account | string | null;
+  destination: Account | string | null;
   date: Date;
   currency?: Currency;
   amount: string;
@@ -54,7 +55,6 @@ export interface Transaction {
   budget: Budget | null;
   category: Category | null;
   tags: string[];
-  type: TransactionType;
 }
 
 export interface TransactionGroup {
@@ -63,22 +63,53 @@ export interface TransactionGroup {
   transactions: Transaction[];
 }
 
-export function storeNewTransaction(transactionGroup: TransactionGroup) {
+function firstNonNull(account: Account | string, ...accounts: (Account | string | null)[]) {
+  for (const account of accounts) {
+    if (!account) {
+      continue;
+    }
+
+    if (typeof account === 'string') {
+      return account;
+    }
+
+    return account;
+  }
+
+  return account;
+}
+
+function accountId(account: Account | string, ...accounts: (Account | string | null)[]) {
+  const nonNull = firstNonNull(account, ...accounts);
+
+  return typeof nonNull === 'string' ? undefined : nonNull.id;
+}
+
+function accountName(account: Account | string, ...accounts: (Account | string | null)[]) {
+  const nonNull = firstNonNull(account, ...accounts);
+
+  return typeof nonNull === 'string' ? nonNull : nonNull.name;
+}
+
+export async function storeNewTransaction(transactionGroup: TransactionGroup) {
   const firstSource = transactionGroup.transactions[0].source;
   const firstDestination = transactionGroup.transactions[0].destination;
+  if (firstSource === null || firstDestination === null) {
+    throw new Error("Source or destination missing in the first transaction");
+  }
+
   const data = {
     transactions: transactionGroup.transactions.map((t: Transaction) => ({
       amount: t.amount,
-      destination_id: t.destination?.id || firstDestination.id,
-      destination_name: typeof t.destination === 'string' ? t.destination : t.destination?.name || firstDestination.name,
-      souce_id: t.source?.id || firstSource.id,
-      source_name: typeof t.source === 'string' ? t.source : t.source?.name || firstSource.name,
+      destination_id: accountId(firstDestination, t.destination),
+      destination_name: accountName(firstDestination, t.destination),
+      souce_id: accountId(firstSource, t.source),
+      source_name: accountName(firstSource, t.source),
       budget_id: t.budget?.id,
       category_name: t.category?.name,
       date: moment(t.date).format('YYYY-MM-DD'),
       description: t.description,
       tags: t.tags,
-      type: t.type,
       book_date: "",
       due_date: "",
       interest_date: "",
@@ -87,6 +118,7 @@ export function storeNewTransaction(transactionGroup: TransactionGroup) {
       notes: "",
       payment_date: "",
       process_date: "",
+      type: getTransactionType(t.source || firstSource, t.destination || firstDestination),
     })),
     error_if_duplicate: false,
     apply_rules: false,

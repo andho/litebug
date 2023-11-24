@@ -13,10 +13,10 @@ import {
   getTransactionType,
 } from '../../firefly/transaction';
 
-type TransactionValues = {
+export type TransactionValues = {
   description: string,
-  source: Account | null,
-  destination: Account | null,
+  source: Account | NewOption | null,
+  destination: Account | NewOption | null,
   amount: string,
   foreign_currency: Currency | null,
   foreign_amount: string | null,
@@ -25,7 +25,7 @@ type TransactionValues = {
   taxRate: boolean,
 };
 
-type FormValues = {
+export type FormValues = {
   transactions: TransactionValues[];
   taxFormula: string;
   transactionDate: Date;
@@ -41,3 +41,13 @@ export type ControlledProps = {
   control: Control<FormValues>,
   index: number,
 };
+
+export type NewOption = {
+  label: string;
+  value: string;
+  __isNew__: true;
+}
+
+export function isNewOption(value: NewOption | Account): value is NewOption {
+  return '__isNew__' in value;
+}

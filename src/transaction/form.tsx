@@ -9,16 +9,14 @@ import { DatePicker } from '@mui/lab';
 import { useForm, useFieldArray, useWatch, useController, Control, } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
-import _ from 'lodash';
 import currency from 'currency.js';
 
 import { nord } from '../theme';
 
 import { FireflyContext } from '../firefly/context';
-import { Account, AccountType, accountRoles, getAccountById } from '../firefly/accounts';
-import { Currency, } from '../firefly/currency';
-import { Budget, getBudgetById } from '../firefly/budget';
-import { Category, getCategoryById } from '../firefly/category';
+import { getAccountById } from '../firefly/accounts';
+import { getBudgetById } from '../firefly/budget';
+import { getCategoryById } from '../firefly/category';
 import {
   RawTransaction,
   TransactionGroup,
@@ -26,33 +24,12 @@ import {
   TransactionAutocomplete,
   transactionAutocomplete,
   fetchTransactionById,
-  getTransactionType,
 } from '../firefly/transaction';
-
-const defaultSourceTypes = [AccountType.Asset, AccountType.Revenue];
-const defaultDestinationTypes = [AccountType.Asset, AccountType.Expense];
+import { DestinationAccountField, SourceAccountField } from './fields/account';
+import { ControlledProps, FormValues, isNewOption, NewOption, TransactionValues } from './fields/common';
 
 const sx = {
   maxWidth: '100%',
-};
-
-type TransactionValues = {
-  description: string,
-  source: Account | string | null,
-  destination: Account | string | null,
-  amount: string,
-  foreign_currency: Currency | null,
-  foreign_amount: string | null,
-  budget: Budget | null,
-  category: Category | null,
-  taxRate: boolean,
-};
-
-type FormValues = {
-  transactions: TransactionValues[];
-  taxFormula: string;
-  transactionDate: Date;
-  group_title: string;
 };
 
 const defaults = {
@@ -66,22 +43,6 @@ const defaults = {
   category: null,
   taxRate: true,
 };
-
-function getCurrency(thisTxAccount: Account | string | null, firstAccount: Account | string) {
-  const account = thisTxAccount && typeof thisTxAccount !== 'string' ? thisTxAccount : firstAccount;
-
-  if (typeof account === 'string') {
-    return;
-  }
-
-  return {
-    id: account.currency_id,
-    name: '',
-    code: account.currency_code,
-    symbol: account.currency_symbol,
-    decimal_places: account.currency_decimal_places,
-  } as Currency;
-}
 
 export default function Form() {
   const {
@@ -109,7 +70,7 @@ export default function Form() {
     name: 'transactions',
   });
 
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = handleSubmit((data: FormValues) => {
     const firstSource = data.transactions[0].source;
     const firstDestination = data.transactions[0].destination;
     if (firstSource === null || firstDestination === null) {
@@ -117,8 +78,9 @@ export default function Form() {
     } else {
       const taxFormula = data.taxFormula === 'taxInclusive' ? taxInclusiveFormula : taxExclusiveFormula;
       const transactions = data.transactions.map(transaction => ({
-        source: firstSource as Account,
-        destination: transaction.destination as Account,
+        source: isNewOption(firstSource) ? firstSource.value : firstSource,
+        destination: transaction.destination && isNewOption(transaction.destination)
+        ? transaction.destination.value : transaction.destination,
         description: transaction.description,
         foreign_currency: null,
         foreign_amount: null,
@@ -126,10 +88,9 @@ export default function Form() {
         category: transaction.category,
         amount: ""+taxFormula(transaction).afterTax.value,
         date: data.transactionDate,
-        currency: getCurrency(transaction.source, firstSource),
         tags: transaction.taxRate ? ['gst-inclusive'] : [],
-        type: getTransactionType(transaction.source || firstSource, transaction.destination || firstDestination),
       }));
+
       const transactionGroup: TransactionGroup = {
         id: '',
         transactions: transactions,
@@ -367,153 +328,6 @@ function DescriptionField({ control, index, loadTransaction }: DescriptionProps)
   );
 }
 
-interface AccountFieldProps extends StandardProps {
-  accountTypes: AccountType[],
-  name: string,
-  value: Account | string | null,
-  onChange: (value: Account | string | null) => void,
-  error?: string,
-  disabled: boolean,
-}
-
-function AccountField(props: AccountFieldProps) {
-  const { state: { data: { accounts: accountsData } } } = React.useContext(FireflyContext);
-
-  const accounts = accountsData.filter(account => props.accountTypes.includes(account.type));
-
-  return (
-    <Autocomplete
-      size="small"
-      sx={{ ...sx }}
-      options={accounts}
-      getOptionLabel={account => typeof account !== 'string' ? account.name : account}
-      groupBy={(account: Account) => {
-        if (account.type === AccountType.Asset && account.account_role) {
-          return 'Asset: ' + accountRoles[account.account_role];
-        } else {
-          return _.capitalize(account.type);
-        }
-      }}
-      isOptionEqualToValue={(option, value) => {
-        if (!value) {
-          return false;
-        }
-        if (value.id === option.id) {
-          return true;
-        }
-
-        return false;
-      }}
-      defaultValue={props.value}
-      value={props.value}
-      onChange={(e, value) => {
-        props.onChange(value);
-      }}
-      onInputChange={(e, value) => {
-        props.onChange(value);
-      }}
-      disabled={props.disabled}
-      autoHighlight
-      freeSolo
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={props.label || props.name}
-          error={!!props.error}
-          helperText={props.error}
-        />)
-      }
-    />
-  );
-}
-
-type ControlledProps = {
-  control: Control<FormValues>,
-  index: number,
-};
-
-function SourceAccountField({ control, index }: ControlledProps) {
-
-  const [source, destination] = useWatch({
-    name: [
-      `transactions.0.source` as const,
-      `transactions.0.destination` as const,
-    ],
-    control,
-  });
-  const accountTypes = (
-    index === 0 && typeof destination !== 'string' && destination?.type === AccountType.Expense ? [AccountType.Asset] : defaultSourceTypes
-  ) || (
-    index !== 0 && typeof source !== 'string' && source ? [source.type] : defaultSourceTypes
-  );
-
-  let disabled = false;
-  if (index !== 0 && typeof source !== 'string' && source?.type === AccountType.Asset) {
-    disabled = true;
-  }
-
-  const { field, fieldState } = useController({
-    control,
-    name: `transactions.${index}.source` as const,
-    rules: { required: !disabled && 'This field is required' },
-  });
-
-  return (
-    <AccountField
-      value={field.value}
-      name={field.name}
-      onChange={field.onChange}
-      disabled={disabled}
-      label="Source Account"
-      accountTypes={accountTypes}
-      error={fieldState.error?.message}
-    />
-  );
-}
-
-function DestinationAccountField({ control, index }: ControlledProps) {
-
-  const [source, destination] = useWatch({
-    name: [
-      `transactions.0.source` as const,
-      `transactions.0.destination` as const,
-    ],
-    control,
-  });
-  const accountTypes = typeof source !== 'string' && source?.type === AccountType.Revenue ? [AccountType.Asset] : defaultDestinationTypes;
-
-  let disabled = false;
-  if (index !== 0 && source && typeof source !== 'string') {
-    if (source.type === AccountType.Asset && typeof destination !== 'string' && destination?.type === AccountType.Asset) {
-      disabled = true;
-    } else if (source.type === AccountType.Revenue) {
-      disabled = true;
-    }
-  }
-
-  const { field, fieldState } = useController({
-    control,
-    name: `transactions.${index}.destination` as const,
-    rules: { required: !disabled },
-  });
-
-  return (
-    <AccountField
-      value={field.value}
-      name={field.name}
-      onChange={field.onChange}
-      label="Destination Account"
-      accountTypes={accountTypes}
-      error={fieldState.error?.message}
-      disabled={disabled}
-    />
-  );
-}
-
-interface StandardProps {
-  id?: string;
-  label?: string;
-}
 
 function BudgetField({ control, index }: ControlledProps) {
   const { field, fieldState } = useController({
@@ -598,11 +412,9 @@ function TaxRateField({ control, index }: ControlledProps) {
   });
 
   const handleChange = (value: TaxRateOptions) => {
-    console.log('Changed to ', value);
     field.onChange(value==='taxed' ? true : false);
   };
 
-  console.log(field.value);
   return (
     <ToggleButtonGroup
       value={field.value ? 'taxed' : 'zero-rated'}
