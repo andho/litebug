@@ -202,11 +202,14 @@ export default function Form() {
               }}
             >
             {fields.map((field, index) => (
-              <Paper elevation={1} sx={{
-                backgroundColor: nord.container,
-                p: 2,
-                mt: index === 0 ? 0 : 2,
-              }}>
+              <Paper
+                key={`field-${index}`}
+                elevation={1}
+                sx={{
+                  backgroundColor: nord.container,
+                  p: 2,
+                  mt: index === 0 ? 0 : 2,
+                }}>
                 <Grid container rowSpacing={2} columnSpacing={2} key={field.id} sx={{ alignItems: "center" }}>
                   <Grid item xs={3}>
                     <DescriptionField {...{control, index, loadTransaction}} />
@@ -538,7 +541,7 @@ function Summary({ control }: { control: Control<FormValues>}) {
       <div>
         {transactions.map((transaction, index) => (
           <Grid container 
-            key={index} 
+            key={`grid-${index}`} 
             sx={{
               backgroundColor: (index % 2)!==0 ? nord.container : '',
               px: 1,
