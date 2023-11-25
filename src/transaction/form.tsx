@@ -6,7 +6,7 @@ import { TextField, Autocomplete, Button, Box,
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { DatePicker } from '@mui/lab';
-import { useForm, useFieldArray, useWatch, useController, Control, } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, useController, Control, ControllerRenderProps, } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import currency from 'currency.js';
@@ -445,7 +445,7 @@ function DateField({ control }: { control: Control<FormValues> }) {
       label="Transaction Date"
       value={field.value}
       onChange={field.onChange}
-      renderInput={(params) => (
+      renderInput={(params: ControllerRenderProps) => (
         <TextField
           {...params}
           size="small"
