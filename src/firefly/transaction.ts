@@ -5,7 +5,6 @@ import { Account, AccountType } from './accounts';
 import { Budget } from './budget';
 import { Category } from './category';
 import { Currency } from './currency';
-import { isNewOption } from '../transaction/fields/common';
 
 export enum TransactionType {
   Transfer = 'transfer',

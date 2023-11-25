@@ -26,7 +26,7 @@ import {
   fetchTransactionById,
 } from '../firefly/transaction';
 import { DestinationAccountField, SourceAccountField } from './fields/account';
-import { ControlledProps, FormValues, isNewOption, NewOption, TransactionValues } from './fields/common';
+import { ControlledProps, FormValues, isNewOption, TransactionValues } from './fields/common';
 
 const sx = {
   maxWidth: '100%',
