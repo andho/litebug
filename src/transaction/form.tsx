@@ -2,11 +2,11 @@ import React from 'react';
 import { TextField, Autocomplete, Button, Box,
   Grid, Paper,
   AppBar, Typography, Divider, IconButton, Toolbar,
-  ToggleButton, ToggleButtonGroup } from '@mui/material';
+  ToggleButton, ToggleButtonGroup, Stack } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { DatePicker } from '@mui/lab';
-import { useForm, useFieldArray, useWatch, useController, Control, ControllerRenderProps, } from 'react-hook-form';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useForm, useFieldArray, useWatch, useController, Control, } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import currency from 'currency.js';
@@ -181,12 +181,16 @@ export default function Form() {
             <Box sx={{
               m: 2
             }}>
-              <Box sx={{
-                p: 2
-              }}>
-                <GroupTitleField control={control} />
-                <DateField control={control} />
-              </Box>
+              <Stack
+                sx={{ 
+                  pb: 2,
+                }}
+                spacing={{ xs: 1, sm: 2 }}
+                useFlexGap
+              >
+                  <GroupTitleField control={control} />
+                  <DateField control={control} />
+              </Stack>
               <TaxFormulaField control={control} />
               <Divider sx={{ my: 1 }} />
               <Summary control={control} />
@@ -448,15 +452,12 @@ function DateField({ control }: { control: Control<FormValues> }) {
       label="Transaction Date"
       value={field.value}
       onChange={field.onChange}
-      renderInput={(params: ControllerRenderProps) => (
-        <TextField
-          {...params}
-          size="small"
-          fullWidth
-          sx={{ mt: 2 }}
-          error={fieldState.invalid}
-        />
-      )}
+      slotProps={{
+        textField: {
+          size: 'small',
+          helperText: fieldState.error,
+        },
+      }}
     />
   );
 }

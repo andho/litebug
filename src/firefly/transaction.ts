@@ -1,10 +1,10 @@
 import fireflyApi from './api';
-import moment, { Moment } from 'moment';
 
 import { Account, AccountType } from './accounts';
 import { Budget } from './budget';
 import { Category } from './category';
 import { Currency } from './currency';
+import { format } from 'date-fns';
 
 export enum TransactionType {
   Transfer = 'transfer',
@@ -15,7 +15,7 @@ export enum TransactionType {
 export interface RawTransaction {
   transaction_journal_id: number;
   type: TransactionType;
-  date: Moment;
+  date: Date;
   order: number;
   currency_id: string;
   currency_code: string;
@@ -106,7 +106,7 @@ export async function storeNewTransaction(transactionGroup: TransactionGroup) {
       source_name: accountName(firstSource, t.source),
       budget_id: t.budget?.id,
       category_name: t.category?.name,
-      date: moment(t.date).format('YYYY-MM-DD'),
+      date: format(t.date, 'yyyy-MM-dd'),
       description: t.description,
       tags: t.tags,
       book_date: "",

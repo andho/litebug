@@ -9,6 +9,8 @@ import theme from './theme';
 import './App.css';
 import Oauth from './config/oauth-config';
 import OAuthHandle from './config/oauth-handle';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 function AppContainer() {
   return (
@@ -41,10 +43,12 @@ const AuthRequired = ({ children }: { children: JSX.Element }) => {
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         <AppContainer/>
-    </ThemeProvider>
+      </ThemeProvider>
+    </LocalizationProvider>
   );
 }
 
