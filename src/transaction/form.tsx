@@ -487,7 +487,7 @@ function TaxFormulaField({ control }: { control: Control<FormValues> }) {
 }
 
 function taxInclusiveFormula(transaction: TransactionValues) {
-  const taxRate = transaction.taxRate ? "1.06" : "1";
+  const taxRate = transaction.taxRate ? "1.08" : "1";
 
   const afterTax = currency(transaction.amount);
   const beforeTax = afterTax.divide(taxRate);
