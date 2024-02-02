@@ -4,7 +4,7 @@ set -e
 
 . ./bin/buildah-funcs
 
-FROM node:lts
+FROM node:16
 
 buildah config --workingdir /app $ctr1
 RUN npm install -g typescript typescript-language-server
