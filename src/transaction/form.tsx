@@ -500,8 +500,10 @@ function taxInclusiveFormula(transaction: TransactionValues) {
   };
 }
 
+const GST_RATE = "0.08";
+
 function taxExclusiveFormula(transaction: TransactionValues) {
-  const taxRate = transaction.taxRate ? "0.06" : "0";
+  const taxRate = transaction.taxRate ? GST_RATE : "0";
 
   const beforeTax = currency(transaction.amount);
   const tax = beforeTax.multiply(taxRate);
