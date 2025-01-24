@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:1234"
+    volumes:
+      - .:/app
+      - /home/andho/dev/projects/own/gleam/glebs:/glebs
+    command: gleam run -m lustre/dev start
+    dns: 8.8.8.8
