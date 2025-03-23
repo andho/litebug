@@ -12,19 +12,30 @@ import gleam/uri
 import lustre
 import lustre/attribute
 import lustre/effect
-import lustre/element
-import lustre/element/html
+
+//import lustre/element
+//import lustre/element/html
 import lustre/event
 import plinth/browser/window
 import plinth/javascript/storage
+import sketch
+import sketch/css
+import sketch/css/length.{px}
+import sketch/lustre as sketch_lustre
+
+import sketch/lustre/element
+import sketch/lustre/element/html
 
 import glebs
 import glebs/request as glebs_request
 
+import components/button.{Default, button}
+
 import cats.{type Cat}
 
 pub fn main() {
-  let app = lustre.application(init, update, view)
+  let assert Ok(stylesheet) = sketch.stylesheet(sketch.Ephemeral)
+  let app = lustre.application(init, update, view(_, stylesheet))
   let assert Ok(_) = lustre.start(app, "#app", Nil)
 
   Nil
@@ -49,10 +60,7 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
       redirect_uri: "http://localhost:1234/oauth/handle",
       scope: "",
     )
-  #(
-    Model(0, [], False, config, option.None),
-    effect.batch([load_token(), check_auth_code_handle(config)]),
-  )
+  #(Model(0, [], False, config, option.None), effect.batch([load_token()]))
 }
 
 fn load_token() -> effect.Effect(Msg) {
@@ -62,12 +70,16 @@ fn load_token() -> effect.Effect(Msg) {
 
       use token <- result.try(storage.get_item(local_storage, "auth_token"))
 
-      io.debug(token)
+      echo "Loaded token"
+      echo token
       use token <- result.try(
-        dynamic.from(token)
-        |> zero.run(glebs_request.token_resp_decoder())
-        |> result.map_error(fn(_error) { Nil }),
+        json.parse(token, using: glebs_request.token_resp_decoder())
+        |> result.map_error(fn(error) {
+          echo error
+          Nil
+        }),
       )
+      echo "Dispatching"
       dispatch(LoggedInSuccessfully(token))
       Ok(Nil)
     }
@@ -79,6 +91,8 @@ fn load_token() -> effect.Effect(Msg) {
 pub type Msg {
   Login
   LoggedInSuccessfully(glebs.TokenResponse)
+  Logout
+  LoggedOut
   Increment
   Decrement
   ApiReturnedCat(Result(Cat, String))
@@ -89,7 +103,7 @@ fn check_auth_code_handle(
   config: glebs.OAuth2ClientConfig,
 ) -> effect.Effect(Msg) {
   effect.from(fn(dispatch) {
-    io.debug(#("location", window.location()))
+    echo #("location", window.location())
     let a =
       window.location()
       |> uri.parse
@@ -106,7 +120,7 @@ fn check_auth_code_handle(
       })
       |> result.map(dict.from_list)
       |> result.try(dict.get(_, "code"))
-      |> io.debug
+      |> echo
       |> result.map(try_get_access_token(_, config, dispatch))
 
     Nil
@@ -128,7 +142,7 @@ fn try_get_access_token(
   config: glebs.OAuth2ClientConfig,
   dispatch: fn(Msg) -> Nil,
 ) -> Nil {
-  io.debug("Trying to get access token")
+  echo "Trying to get access token"
   let _ = {
     use local_storage <- result.try(storage.local())
 
@@ -138,7 +152,7 @@ fn try_get_access_token(
     |> promise.map(fn(token) {
       case token {
         Ok(token) -> {
-          io.debug(token)
+          echo token
 
           let _ =
             token
@@ -149,19 +163,19 @@ fn try_get_access_token(
           Ok(Nil)
         }
         Error(error) -> {
-          io.debug(error)
+          echo error
           Ok(Nil)
         }
       }
     })
     |> promise.rescue(fn(_) {
-      io.debug("Error getting access token")
+      echo "Error getting access token"
       Ok(Nil)
     })
     |> promise.tap(fn(res) {
       case res {
         Error(e) -> {
-          io.debug(e)
+          echo e
           Nil
         }
         _ -> Nil
@@ -184,7 +198,7 @@ fn login(config: glebs.OAuth2ClientConfig) -> effect.Effect(Msg) {
         storage.local()
         |> result.map(storage.set_item(_, "glebs_verifier", authorize_url.1))
 
-      io.debug(authorize_url)
+      echo authorize_url
       let curr_window = window.self()
       window.set_location(curr_window, uri.to_string(authorize_url.0))
 
@@ -197,41 +211,69 @@ fn login(config: glebs.OAuth2ClientConfig) -> effect.Effect(Msg) {
 
 fn redirect_to_home() -> effect.Effect(Msg) {
   let curr_window = window.self()
-  window.set_location(curr_window, "/")
+  //window.set_location(curr_window, "/")
   effect.none()
+}
+
+fn logout() -> effect.Effect(Msg) {
+  effect.from(fn(dispatch) {
+    let _ =
+      storage.local()
+      |> result.map(storage.remove_item(_, "auth_token"))
+
+    dispatch(LoggedOut)
+    Nil
+  })
 }
 
 pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
   case msg {
     Login -> #(model, login(model.oauth_config))
-    LoggedInSuccessfully(token) -> #(
-      Model(..model, token_response: Some(token)),
-      redirect_to_home(),
-    )
+    LoggedInSuccessfully(token) -> {
+      echo "Logged in successfully"
+      #(Model(..model, token_response: Some(token)), redirect_to_home())
+    }
+    Logout -> #(model, logout())
+    LoggedOut -> #(Model(..model, token_response: None), effect.none())
     Increment -> #(Model(..model, count: model.count + 1), get_cat())
     Decrement -> #(Model(..model, count: model.count - 1), effect.none())
     ApiReturnedCat(Ok(cat)) -> {
-      io.debug(cat)
+      echo cat
       #(
         Model(..model, cats: [cat, ..model.cats], fetching: False),
         effect.none(),
       )
     }
     ApiReturnedCat(Error(error)) -> {
-      io.debug(error)
+      echo error
       #(Model(..model, fetching: False), effect.none())
     }
     FetchingCats -> #(Model(..model, fetching: True), effect.none())
   }
 }
 
-pub fn view(model: Model) -> element.Element(Msg) {
+pub fn view(model: Model, stylesheet) {
+  case model.token_response {
+    Some(_) -> home_view(model, stylesheet)
+    None -> login_view(model, stylesheet)
+  }
+}
+
+pub fn login_view(model: Model, stylesheet) {
+  use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
+
   let count = int.to_string(model.count)
-  html.div([], [
-    html.div([], [html.button([event.on_click(Login)], [element.text("Login")])]),
-    html.button([event.on_click(Decrement)], [element.text("Decrement")]),
+  html.div(css.class([]), [], [
+    html.div(css.class([]), [], [
+      button("Login", Default, Some(event.on_click(Login))),
+    ]),
+    html.button(css.class([]), [event.on_click(Decrement)], [
+      element.text("Decrement"),
+    ]),
     html.text(count),
-    html.button([event.on_click(Increment)], [element.text("Increment")]),
+    html.button(css.class([]), [event.on_click(Increment)], [
+      element.text("Increment"),
+    ]),
     {
       case model.fetching {
         True -> element.text("Fetching cats...")
@@ -239,11 +281,48 @@ pub fn view(model: Model) -> element.Element(Msg) {
       }
     },
     element.keyed(
-      html.div([], _),
+      html.div(css.class([]), [], _),
       list.map(model.cats, fn(cat) {
         #(
           cat.id,
-          html.img([
+          html.img(css.class([]), [
+            attribute.src(cat.url),
+            attribute.width(400),
+            attribute.height(400),
+          ]),
+        )
+      }),
+    ),
+  ])
+}
+
+pub fn home_view(model: Model, stylesheet) {
+  use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
+
+  let count = int.to_string(model.count)
+  html.div(css.class([]), [], [
+    html.div(css.class([]), [], [
+      button("Logout", Default, Some(event.on_click(Logout))),
+    ]),
+    html.button(css.class([]), [event.on_click(Decrement)], [
+      element.text("Decrement"),
+    ]),
+    html.text(count),
+    html.button(css.class([]), [event.on_click(Increment)], [
+      element.text("Increment"),
+    ]),
+    {
+      case model.fetching {
+        True -> element.text("Fetching cats...")
+        False -> element.none()
+      }
+    },
+    element.keyed(
+      html.div(css.class([]), [], _),
+      list.map(model.cats, fn(cat) {
+        #(
+          cat.id,
+          html.img(css.class([]), [
             attribute.src(cat.url),
             attribute.width(400),
             attribute.height(400),
