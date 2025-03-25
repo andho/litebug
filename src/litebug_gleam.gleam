@@ -1,23 +1,15 @@
-import decode/zero
 import gleam/dict
-import gleam/dynamic
 import gleam/int
-import gleam/io
 import gleam/javascript/promise
 import gleam/json
-import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri
-import gleam_community/colour
 import lustre
-import lustre/attribute
 import lustre/effect
 import modem
 import theme
 
-//import lustre/element
-//import lustre/element/html
 import lustre/event
 import plinth/browser/window
 import plinth/javascript/storage
@@ -71,10 +63,6 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
   let current_route = case uri.parse(window.location()) {
     Ok(curr_uri) -> get_route(curr_uri)
     Error(_) -> HomePage
-  }
-  let route = case model.token_response, current_route {
-    Some(_), _ | None, HandleOauthPage -> current_route
-    None, _ -> LoginPage
   }
 
   #(
@@ -144,10 +132,6 @@ pub type Msg {
   LoggedInSuccessfully(glebs.TokenResponse)
   Logout
   LoggedOut
-  Increment
-  Decrement
-  ApiReturnedCat(Result(Cat, String))
-  FetchingCats
 }
 
 fn check_auth_code_handle(
@@ -237,8 +221,6 @@ fn login(config: glebs.OAuth2ClientConfig) -> effect.Effect(Msg) {
   effect.from(fn(_) {
     glebs_request.create_authorization_request_url(config)
     |> promise.map_try(fn(authorize_url) {
-      let curr_window = window.self()
-
       let _ =
         storage.local()
         |> result.map(storage.set_item(_, "glebs_verifier", authorize_url.1))
@@ -281,20 +263,6 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
       Model(..model, token_response: None),
       modem.replace("/login", None, None),
     )
-    Increment -> #(Model(..model, count: model.count + 1), get_cat())
-    Decrement -> #(Model(..model, count: model.count - 1), effect.none())
-    ApiReturnedCat(Ok(cat)) -> {
-      echo cat
-      #(
-        Model(..model, cats: [cat, ..model.cats], fetching: False),
-        effect.none(),
-      )
-    }
-    ApiReturnedCat(Error(error)) -> {
-      echo error
-      #(Model(..model, fetching: False), effect.none())
-    }
-    FetchingCats -> #(Model(..model, fetching: True), effect.none())
   }
 }
 
@@ -313,7 +281,6 @@ pub fn text_body() {
 pub fn login_view(model: Model, stylesheet) {
   use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
 
-  let count = int.to_string(model.count)
   html.div(
     css.class([
       css.width(px(400)),
@@ -349,10 +316,9 @@ pub fn login_view(model: Model, stylesheet) {
   )
 }
 
-pub fn handle_oauth_view(model: Model, stylesheet) {
+pub fn handle_oauth_view(_model: Model, stylesheet) {
   use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
 
-  let count = int.to_string(model.count)
   html.div(
     css.class([
       css.width(px(400)),
@@ -380,60 +346,33 @@ pub fn handle_oauth_view(model: Model, stylesheet) {
   )
 }
 
-pub fn home_view(model: Model, stylesheet) {
+pub fn home_view(_model: Model, stylesheet) {
   use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
 
-  let count = int.to_string(model.count)
   html.div(css.class([]), [], [
     html.div(css.class([]), [], [
       button("Logout", button.Primary, Some(event.on_click(Logout))),
     ]),
-    html.button(css.class([]), [event.on_click(Decrement)], [
-      element.text("Decrement"),
-    ]),
-    html.text(count),
-    html.button(css.class([]), [event.on_click(Increment)], [
-      element.text("Increment"),
-    ]),
-    {
-      case model.fetching {
-        True -> element.text("Fetching cats...")
-        False -> element.none()
-      }
-    },
-    element.keyed(
-      html.div(css.class([]), [], _),
-      list.map(model.cats, fn(cat) {
-        #(
-          cat.id,
-          html.img(css.class([]), [
-            attribute.src(cat.url),
-            attribute.width(400),
-            attribute.height(400),
-          ]),
-        )
-      }),
-    ),
   ])
 }
 
-pub fn get_cat() -> effect.Effect(Msg) {
-  swr(Nil, cats.get_cat_promise, fn(result) {
-    case result {
-      FetchResult(data: option.Some(cat), ..) -> ApiReturnedCat(Ok(cat))
-      FetchResult(_, option.Some(error), _) -> ApiReturnedCat(Error(error))
-      FetchResult(_, _, True) -> FetchingCats
-      _ -> ApiReturnedCat(Error("No cat"))
-    }
-  })
-  //effect.from(fn(dispatch) {
-  //  cats.get_cat_promise()
-  //  |> promise.map(fn(cat) { ApiReturnedCat(cat) })
-  //  |> promise.tap(dispatch)
-
-  //  Nil
-  //})
-}
+//pub fn get_cat() -> effect.Effect(Msg) {
+//  swr(Nil, cats.get_cat_promise, fn(result) {
+//    case result {
+//      FetchResult(data: option.Some(cat), ..) -> ApiReturnedCat(Ok(cat))
+//      FetchResult(_, option.Some(error), _) -> ApiReturnedCat(Error(error))
+//      FetchResult(_, _, True) -> FetchingCats
+//      _ -> ApiReturnedCat(Error("No cat"))
+//    }
+//  })
+//  //effect.from(fn(dispatch) {
+//  //  cats.get_cat_promise()
+//  //  |> promise.map(fn(cat) { ApiReturnedCat(cat) })
+//  //  |> promise.tap(dispatch)
+//
+//  //  Nil
+//  //})
+//}
 
 pub type FetchResult(data, error) {
   FetchResult(
