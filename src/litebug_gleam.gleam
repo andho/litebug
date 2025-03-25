@@ -13,6 +13,7 @@ import gleam_community/colour
 import lustre
 import lustre/attribute
 import lustre/effect
+import modem
 import theme
 
 //import lustre/element
@@ -45,6 +46,7 @@ pub fn main() {
 
 pub type Model {
   Model(
+    route: Route,
     count: Int,
     cats: List(Cat),
     fetching: Bool,
@@ -62,38 +64,82 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
       redirect_uri: "http://localhost:1234/oauth/handle",
       scope: "",
     )
+
+  let model =
+    Model(HomePage, 0, [], False, config, option.None)
+    |> load_token
+  let current_route = case uri.parse(window.location()) {
+    Ok(curr_uri) -> get_route(curr_uri)
+    Error(_) -> HomePage
+  }
+  let route = case model.token_response, current_route {
+    Some(_), _ | None, HandleOauthPage -> current_route
+    None, _ -> LoginPage
+  }
+
   #(
-    Model(0, [], False, config, option.None),
-    effect.batch([load_token(), check_auth_code_handle(config)]),
+    Model(..model, route: HomePage),
+    effect.batch([
+      case current_route {
+        HandleOauthPage -> check_auth_code_handle(config)
+        _ -> effect.none()
+      },
+      modem.init(on_url_change),
+      case model.token_response, current_route {
+        Some(_), _ | None, HandleOauthPage -> effect.none()
+        None, _ -> modem.replace("/login", None, None)
+      },
+    ]),
   )
 }
 
-fn load_token() -> effect.Effect(Msg) {
-  effect.from(fn(dispatch) {
-    let _ = {
-      use local_storage <- result.try(storage.local())
+fn on_url_change(uri: uri.Uri) -> Msg {
+  let route = get_route(uri)
+  RouteChanged(route)
+}
 
-      use token <- result.try(storage.get_item(local_storage, "auth_token"))
+pub type Route {
+  HomePage
+  LoginPage
+  HandleOauthPage
+  LogoutPage
+  ConfigPage
+}
 
-      echo "Loaded token"
-      echo token
-      use token <- result.try(
-        json.parse(token, using: glebs_request.token_resp_decoder())
-        |> result.map_error(fn(error) {
-          echo error
-          Nil
-        }),
-      )
-      echo "Dispatching"
-      dispatch(LoggedInSuccessfully(token))
-      Ok(Nil)
-    }
+fn get_route(uri: uri.Uri) -> Route {
+  case uri.path_segments(uri.path) {
+    [""] -> HomePage
+    ["oauth", "handle"] -> HandleOauthPage
+    ["login"] -> LoginPage
+    ["logout"] -> LogoutPage
+    ["config"] -> ConfigPage
+    _ -> HomePage
+  }
+}
 
-    Nil
-  })
+fn load_token(model: Model) -> Model {
+  {
+    use local_storage <- result.try(storage.local())
+
+    use token <- result.try(storage.get_item(local_storage, "auth_token"))
+
+    echo "Loaded token"
+    echo token
+    use token <- result.try(
+      json.parse(token, using: glebs_request.token_resp_decoder())
+      |> result.map_error(fn(error) {
+        echo error
+        Nil
+      }),
+    )
+    echo "Dispatching"
+    Ok(Model(..model, token_response: Some(token)))
+  }
+  |> result.unwrap(model)
 }
 
 pub type Msg {
+  RouteChanged(Route)
   Login
   LoggedInSuccessfully(glebs.TokenResponse)
   Logout
@@ -110,17 +156,11 @@ fn check_auth_code_handle(
   effect.from(fn(dispatch) {
     echo #("location", window.location())
     let a =
-      window.location()
-      |> uri.parse
+      modem.initial_uri()
       |> result.try(fn(current_uri) {
-        case uri.path_segments(current_uri.path) {
-          ["oauth", "handle"] -> {
-            case current_uri.query {
-              Some(query) -> uri.parse_query(query)
-              None -> Error(Nil)
-            }
-          }
-          _ -> Error(Nil)
+        case current_uri.query {
+          Some(query) -> uri.parse_query(query)
+          None -> Error(Nil)
         }
       })
       |> result.map(dict.from_list)
@@ -214,12 +254,6 @@ fn login(config: glebs.OAuth2ClientConfig) -> effect.Effect(Msg) {
   })
 }
 
-fn redirect_to_home() -> effect.Effect(Msg) {
-  let curr_window = window.self()
-  //window.set_location(curr_window, "/")
-  effect.none()
-}
-
 fn logout() -> effect.Effect(Msg) {
   effect.from(fn(dispatch) {
     let _ =
@@ -233,13 +267,20 @@ fn logout() -> effect.Effect(Msg) {
 
 pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
   case msg {
+    RouteChanged(route) -> #(Model(..model, route: route), effect.none())
     Login -> #(model, login(model.oauth_config))
     LoggedInSuccessfully(token) -> {
       echo "Logged in successfully"
-      #(Model(..model, token_response: Some(token)), redirect_to_home())
+      #(
+        Model(..model, token_response: Some(token)),
+        modem.replace("/", None, None),
+      )
     }
     Logout -> #(model, logout())
-    LoggedOut -> #(Model(..model, token_response: None), effect.none())
+    LoggedOut -> #(
+      Model(..model, token_response: None),
+      modem.replace("/login", None, None),
+    )
     Increment -> #(Model(..model, count: model.count + 1), get_cat())
     Decrement -> #(Model(..model, count: model.count - 1), effect.none())
     ApiReturnedCat(Ok(cat)) -> {
@@ -258,9 +299,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
 }
 
 pub fn view(model: Model, stylesheet) {
-  case model.token_response {
-    Some(_) -> home_view(model, stylesheet)
-    None -> login_view(model, stylesheet)
+  case model.route {
+    HomePage -> home_view(model, stylesheet)
+    LoginPage -> login_view(model, stylesheet)
+    _ -> home_view(model, stylesheet)
   }
 }
 
@@ -303,6 +345,37 @@ pub fn login_view(model: Model, stylesheet) {
           button("Change Config", button.Secondary, Some(event.on_click(Login))),
         ],
       ),
+    ],
+  )
+}
+
+pub fn handle_oauth_view(model: Model, stylesheet) {
+  use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
+
+  let count = int.to_string(model.count)
+  html.div(
+    css.class([
+      css.width(px(400)),
+      css.property("margin", "50px auto"),
+      css.padding(px(28)),
+      css.background(theme.color(theme.CardBackground)),
+      css.display("flex"),
+      css.row_gap(px(10)),
+      css.flex_direction("column"),
+      css.justify_content("center"),
+      css.align_items("center"),
+      css.border_radius(px(14)),
+    ]),
+    [],
+    [
+      html.div(css.class([]), [], [
+        html.div(text_body(), [], [
+          html.text(
+            "Trying to get access token. Please
+        wait...",
+          ),
+        ]),
+      ]),
     ],
   )
 }
