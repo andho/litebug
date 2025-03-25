@@ -26,6 +26,8 @@ glebs = ">= 0.1.0 and < 1.0.0"
 gleam_json = ">= 2.2.0 and < 3.0.0"
 sketch = ">= 4.0.0 and < 5.0.0"
 sketch_lustre = ">= 2.0.0 and < 3.0.0"
+catppuccin = { path = "/home/andho/dev/projects/own/gleam/catppuccin" }
+gleam_community_colour = ">= 2.0.0 and < 3.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

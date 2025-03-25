@@ -9,9 +9,11 @@ import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri
+import gleam_community/colour
 import lustre
 import lustre/attribute
 import lustre/effect
+import theme
 
 //import lustre/element
 //import lustre/element/html
@@ -29,7 +31,7 @@ import sketch/lustre/element/html
 import glebs
 import glebs/request as glebs_request
 
-import components/button.{Default, button}
+import components/button.{button}
 
 import cats.{type Cat}
 
@@ -60,7 +62,10 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
       redirect_uri: "http://localhost:1234/oauth/handle",
       scope: "",
     )
-  #(Model(0, [], False, config, option.None), effect.batch([load_token()]))
+  #(
+    Model(0, [], False, config, option.None),
+    effect.batch([load_token(), check_auth_code_handle(config)]),
+  )
 }
 
 fn load_token() -> effect.Effect(Msg) {
@@ -131,7 +136,7 @@ fn auth_token_to_json(token: glebs.TokenResponse) -> String {
   json.object([
     #("access_token", json.string(token.access_token)),
     #("token_type", json.string(token.token_type)),
-    #("expires_in", json.string(int.to_string(token.expires_in))),
+    #("expires_in", json.int(token.expires_in)),
     #("refresh_token", json.string(token.refresh_token)),
   ])
   |> json.to_string
@@ -259,41 +264,47 @@ pub fn view(model: Model, stylesheet) {
   }
 }
 
+pub fn text_body() {
+  css.class([css.color(theme.color(theme.Text))])
+}
+
 pub fn login_view(model: Model, stylesheet) {
   use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
 
   let count = int.to_string(model.count)
-  html.div(css.class([]), [], [
-    html.div(css.class([]), [], [
-      button("Login", Default, Some(event.on_click(Login))),
+  html.div(
+    css.class([
+      css.width(px(400)),
+      css.property("margin", "50px auto"),
+      css.padding(px(28)),
+      css.background(theme.color(theme.CardBackground)),
+      css.display("flex"),
+      css.row_gap(px(10)),
+      css.flex_direction("column"),
+      css.justify_content("center"),
+      css.align_items("center"),
+      css.border_radius(px(14)),
     ]),
-    html.button(css.class([]), [event.on_click(Decrement)], [
-      element.text("Decrement"),
-    ]),
-    html.text(count),
-    html.button(css.class([]), [event.on_click(Increment)], [
-      element.text("Increment"),
-    ]),
-    {
-      case model.fetching {
-        True -> element.text("Fetching cats...")
-        False -> element.none()
-      }
-    },
-    element.keyed(
-      html.div(css.class([]), [], _),
-      list.map(model.cats, fn(cat) {
-        #(
-          cat.id,
-          html.img(css.class([]), [
-            attribute.src(cat.url),
-            attribute.width(400),
-            attribute.height(400),
-          ]),
-        )
-      }),
-    ),
-  ])
+    [],
+    [
+      html.div(css.class([]), [], [
+        html.div(text_body(), [], [html.text("You are configured to log into:")]),
+        html.div(text_body(), [], [html.text(model.oauth_config.authorize_url)]),
+      ]),
+      html.div(
+        css.class([
+          css.display("flex"),
+          css.flex_direction("row"),
+          css.gap(px(14)),
+        ]),
+        [],
+        [
+          button("Login", button.Primary, Some(event.on_click(Login))),
+          button("Change Config", button.Secondary, Some(event.on_click(Login))),
+        ],
+      ),
+    ],
+  )
 }
 
 pub fn home_view(model: Model, stylesheet) {
@@ -302,7 +313,7 @@ pub fn home_view(model: Model, stylesheet) {
   let count = int.to_string(model.count)
   html.div(css.class([]), [], [
     html.div(css.class([]), [], [
-      button("Logout", Default, Some(event.on_click(Logout))),
+      button("Logout", button.Primary, Some(event.on_click(Logout))),
     ]),
     html.button(css.class([]), [event.on_click(Decrement)], [
       element.text("Decrement"),
