@@ -43,14 +43,7 @@ pub fn main() {
 }
 
 fn init(_) -> #(Model, effect.Effect(Msg)) {
-  let config =
-    glebs.OAuth2ClientConfig(
-      client_id: "54",
-      authorize_url: "https://firefly.andho.xyz/oauth/authorize",
-      token_url: "https://firefly.andho.xyz/oauth/token",
-      redirect_uri: "http://localhost:1234/oauth/handle",
-      scope: "",
-    )
+  let config = load_config()
 
   let model =
     Model(route: HomePage, oauth_config: config, token_response: option.None)
@@ -94,6 +87,34 @@ fn get_route(uri: uri.Uri) -> Route {
     ["config"] -> ConfigPage(config_page.default_model())
     _ -> HomePage
   }
+}
+
+fn load_config() -> glebs.OAuth2ClientConfig {
+  {
+    use local_storage <- result.try(storage.local())
+
+    use config <- result.try(storage.get_item(local_storage, "glebs_config"))
+
+    echo "Loaded config"
+    echo config
+    use config <- result.try(
+      json.parse(config, using: config_page.oauth2_client_config_decoder())
+      |> result.map_error(fn(error) {
+        echo error
+        Nil
+      }),
+    )
+    echo "Dispatching"
+    Ok(config)
+  }
+  |> option.from_result
+  |> option.unwrap(glebs.OAuth2ClientConfig(
+    client_id: "",
+    authorize_url: "",
+    token_url: "",
+    redirect_uri: "",
+    scope: "",
+  ))
 }
 
 fn load_token(model: Model) -> Model {

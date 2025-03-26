@@ -1,9 +1,14 @@
 import components/text_input
+import gleam/dynamic/decode
+import gleam/json
 import gleam/option.{Some}
+import gleam/result
 import glebs
+import glebs/request
 import lustre/attribute
 import lustre/effect
 import modem
+import plinth/javascript/storage
 import theme
 
 import lustre/event
@@ -40,7 +45,10 @@ pub fn update(
     FireflyUrlChanged(url) -> {
       #(glebs.OAuth2ClientConfig(..model, authorize_url: url), effect.none())
     }
-    Save -> #(model, modem.back(1))
+    Save -> {
+      let _ = save_config_storage(model)
+      #(model, modem.back(1))
+    }
     Cancel -> #(model, modem.back(1))
   }
 }
@@ -89,4 +97,43 @@ pub fn config_view(model: glebs.OAuth2ClientConfig, stylesheet) {
       ),
     ],
   )
+}
+
+pub fn save_config_storage(config: glebs.OAuth2ClientConfig) {
+  let _ =
+    storage.local()
+    |> result.map(storage.set_item(
+      _,
+      "glebs_config",
+      oauth2_config_encoder(config),
+    ))
+  echo "Saved config"
+}
+
+pub fn oauth2_client_config_decoder() -> decode.Decoder(
+  glebs.OAuth2ClientConfig,
+) {
+  use client_id <- decode.field("client_id", decode.string)
+  use authorize_url <- decode.field("authorize_url", decode.string)
+  use token_url <- decode.field("token_url", decode.string)
+  use redirect_uri <- decode.field("redirect_uri", decode.string)
+  use scope <- decode.field("scope", decode.string)
+  decode.success(glebs.OAuth2ClientConfig(
+    client_id:,
+    authorize_url:,
+    token_url:,
+    redirect_uri:,
+    scope:,
+  ))
+}
+
+pub fn oauth2_config_encoder(config: glebs.OAuth2ClientConfig) -> String {
+  json.object([
+    #("client_id", json.string(config.client_id)),
+    #("authorize_url", json.string(config.authorize_url)),
+    #("token_url", json.string(config.token_url)),
+    #("redirect_uri", json.string(config.redirect_uri)),
+    #("scope", json.string(config.scope)),
+  ])
+  |> json.to_string
 }
