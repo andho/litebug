@@ -32,9 +32,17 @@ pub fn default_model() {
 }
 
 pub type ConfigMsg {
-  FireflyUrlChanged(String)
+  ConfigFieldChanged(Field, String)
   Save
   Cancel
+}
+
+pub type Field {
+  AuthorizeUrl
+  TokenUrl
+  RedirectUri
+  ClientId
+  Scope
 }
 
 pub fn update(
@@ -42,8 +50,29 @@ pub fn update(
   msg: ConfigMsg,
 ) -> #(glebs.OAuth2ClientConfig, effect.Effect(ConfigMsg)) {
   case msg {
-    FireflyUrlChanged(url) -> {
-      #(glebs.OAuth2ClientConfig(..model, authorize_url: url), effect.none())
+    ConfigFieldChanged(field, value) -> {
+      case field {
+        AuthorizeUrl -> #(
+          glebs.OAuth2ClientConfig(..model, authorize_url: value),
+          effect.none(),
+        )
+        TokenUrl -> #(
+          glebs.OAuth2ClientConfig(..model, token_url: value),
+          effect.none(),
+        )
+        RedirectUri -> #(
+          glebs.OAuth2ClientConfig(..model, redirect_uri: value),
+          effect.none(),
+        )
+        ClientId -> #(
+          glebs.OAuth2ClientConfig(..model, client_id: value),
+          effect.none(),
+        )
+        Scope -> #(
+          glebs.OAuth2ClientConfig(..model, scope: value),
+          effect.none(),
+        )
+      }
     }
     Save -> {
       let _ = save_config_storage(model)
@@ -76,13 +105,42 @@ pub fn config_view(model: glebs.OAuth2ClientConfig, stylesheet) {
           html.text("Enter your firefly OAuth2 config"),
         ]),
       ]),
-      html.div(css.class([css.display("flex"), css.gap(px(14))]), [], [
-        text_input.text_input(
-          "Firefly URL",
-          model.authorize_url,
-          event.on_input(FireflyUrlChanged),
-        ),
-      ]),
+      html.div(
+        css.class([
+          css.display("flex"),
+          css.flex_direction("column"),
+          css.width(px(300)),
+          css.row_gap(px(14)),
+        ]),
+        [],
+        [
+          text_input.text_input(
+            "Authorize URL",
+            model.authorize_url,
+            event.on_input(ConfigFieldChanged(AuthorizeUrl, _)),
+          ),
+          text_input.text_input(
+            "Token URL",
+            model.token_url,
+            event.on_input(ConfigFieldChanged(TokenUrl, _)),
+          ),
+          text_input.text_input(
+            "Redirect URI",
+            model.redirect_uri,
+            event.on_input(ConfigFieldChanged(RedirectUri, _)),
+          ),
+          text_input.text_input(
+            "Client ID",
+            model.client_id,
+            event.on_input(ConfigFieldChanged(ClientId, _)),
+          ),
+          text_input.text_input(
+            "Scope",
+            model.scope,
+            event.on_input(ConfigFieldChanged(Scope, _)),
+          ),
+        ],
+      ),
       html.div(
         css.class([
           css.display("flex"),

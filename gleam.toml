@@ -18,15 +18,13 @@ gleam_stdlib = ">= 0.34.0 and < 2.0.0"
 lustre = ">= 4.6.3 and < 5.0.0"
 gleam_fetch = ">= 1.1.0 and < 2.0.0"
 decode = ">= 1.0.0 and < 2.0.0"
-gleam_http = ">= 3.7.1 and < 4.0.0"
-gleam_javascript = ">= 0.13.0 and < 1.0.0"
+gleam_javascript = ">= 1.0.0 and < 2.0.0"
 plinth = ">= 0.5.4 and < 1.0.0"
 
-glebs = ">= 0.1.0 and < 1.0.0"
+glebs = ">= 1.0.0 and < 2.0.0"
 gleam_json = ">= 2.2.0 and < 3.0.0"
 sketch = ">= 4.0.0 and < 5.0.0"
 sketch_lustre = ">= 2.0.0 and < 3.0.0"
-catppuccin = { path = "/home/andho/dev/projects/own/gleam/catppuccin" }
 gleam_community_colour = ">= 2.0.0 and < 3.0.0"
 modem = ">= 2.0.1 and < 3.0.0"
 
