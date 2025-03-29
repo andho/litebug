@@ -7968,6 +7968,14 @@ var ConfigPageMsg = class extends CustomType {
 };
 
 // build/dev/javascript/litebug_gleam/litebug_gleam.mjs
+function init_route(route) {
+  return from(
+    (dispatch) => {
+      dispatch(new RouteChanged(route));
+      return void 0;
+    }
+  );
+}
 function get_route(uri) {
   let $ = path_segments(uri.path);
   if ($.hasLength(1) && $.head === "") {
@@ -7995,8 +8003,8 @@ function load_config() {
       return try$(
         getItem(local_storage, "glebs_config"),
         (config) => {
-          echo2("Loaded config", "src/litebug_gleam.gleam", 98);
-          echo2(config, "src/litebug_gleam.gleam", 99);
+          echo2("Loaded config", "src/litebug_gleam.gleam", 105);
+          echo2(config, "src/litebug_gleam.gleam", 106);
           return try$(
             (() => {
               let _pipe2 = parse(
@@ -8006,13 +8014,13 @@ function load_config() {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo2(error, "src/litebug_gleam.gleam", 103);
+                  echo2(error, "src/litebug_gleam.gleam", 110);
                   return void 0;
                 }
               );
             })(),
             (config2) => {
-              echo2("Dispatching", "src/litebug_gleam.gleam", 107);
+              echo2("Dispatching", "src/litebug_gleam.gleam", 114);
               return new Ok(config2);
             }
           );
@@ -8033,8 +8041,8 @@ function load_token(model) {
       return try$(
         getItem(local_storage, "auth_token"),
         (token) => {
-          echo2("Loaded token", "src/litebug_gleam.gleam", 126);
-          echo2(token, "src/litebug_gleam.gleam", 127);
+          echo2("Loaded token", "src/litebug_gleam.gleam", 133);
+          echo2(token, "src/litebug_gleam.gleam", 134);
           return try$(
             (() => {
               let _pipe2 = parse(
@@ -8044,13 +8052,13 @@ function load_token(model) {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo2(error, "src/litebug_gleam.gleam", 131);
+                  echo2(error, "src/litebug_gleam.gleam", 138);
                   return void 0;
                 }
               );
             })(),
             (token2) => {
-              echo2("Dispatching", "src/litebug_gleam.gleam", 135);
+              echo2("Dispatching", "src/litebug_gleam.gleam", 142);
               return new Ok(
                 (() => {
                   let _record = model;
@@ -8081,7 +8089,7 @@ function auth_token_to_json(token) {
   return to_string2(_pipe);
 }
 function try_get_access_token(code2, config, dispatch) {
-  echo2("Trying to get access token", "src/litebug_gleam.gleam", 178);
+  echo2("Trying to get access token", "src/litebug_gleam.gleam", 185);
   let $ = try$(
     localStorage(),
     (local_storage) => {
@@ -8094,7 +8102,7 @@ function try_get_access_token(code2, config, dispatch) {
             (token) => {
               if (token.isOk()) {
                 let token$1 = token[0];
-                echo2(token$1, "src/litebug_gleam.gleam", 188);
+                echo2(token$1, "src/litebug_gleam.gleam", 195);
                 let $1 = (() => {
                   let _pipe$12 = token$1;
                   let _pipe$22 = auth_token_to_json(_pipe$12);
@@ -8110,7 +8118,7 @@ function try_get_access_token(code2, config, dispatch) {
                 return new Ok(void 0);
               } else {
                 let error = token[0];
-                echo2(error, "src/litebug_gleam.gleam", 199);
+                echo2(error, "src/litebug_gleam.gleam", 206);
                 return new Ok(void 0);
               }
             }
@@ -8118,7 +8126,7 @@ function try_get_access_token(code2, config, dispatch) {
           let _pipe$2 = rescue(
             _pipe$1,
             (_) => {
-              echo2("Error getting access token", "src/litebug_gleam.gleam", 205);
+              echo2("Error getting access token", "src/litebug_gleam.gleam", 212);
               return new Ok(void 0);
             }
           );
@@ -8127,7 +8135,7 @@ function try_get_access_token(code2, config, dispatch) {
             (res) => {
               if (!res.isOk()) {
                 let e = res[0];
-                echo2(e, "src/litebug_gleam.gleam", 211);
+                echo2(e, "src/litebug_gleam.gleam", 218);
                 return void 0;
               } else {
                 return void 0;
@@ -8144,7 +8152,7 @@ function try_get_access_token(code2, config, dispatch) {
 function check_auth_code_handle(config) {
   return from(
     (dispatch) => {
-      echo2(["location", location()], "src/litebug_gleam.gleam", 145);
+      echo2(["location", location()], "src/litebug_gleam.gleam", 152);
       let a2 = (() => {
         let _pipe = do_initial_uri();
         let _pipe$1 = try$(
@@ -8166,7 +8174,7 @@ function check_auth_code_handle(config) {
             return map_get(_capture, "code");
           }
         );
-        echo2(_pipe$3, "src/litebug_gleam.gleam", 156);
+        echo2(_pipe$3, "src/litebug_gleam.gleam", 163);
         return map3(
           _pipe$3,
           (_capture) => {
@@ -8215,13 +8223,13 @@ function init3(_) {
         (() => {
           let $ = model.token_response;
           if ($ instanceof Some) {
-            return none();
+            return init_route(current_route);
           } else if ($ instanceof None && current_route instanceof HandleOauthPage) {
-            return none();
+            return init_route(current_route);
           } else if ($ instanceof None && current_route instanceof ConfigPage) {
-            return none();
+            return init_route(current_route);
           } else if ($ instanceof None && current_route instanceof LoginPage) {
-            return none();
+            return init_route(current_route);
           } else {
             return replace2("/login", new None(), new None());
           }
@@ -8250,7 +8258,7 @@ function login(config) {
               }
             );
           })();
-          echo2(authorize_url, "src/litebug_gleam.gleam", 232);
+          echo2(authorize_url, "src/litebug_gleam.gleam", 239);
           let curr_window = self();
           setLocation(curr_window, to_string3(authorize_url[0]));
           return new Ok(void 0);
@@ -8325,7 +8333,7 @@ function update2(model, msg) {
     return [model, login(model.oauth_config)];
   } else if (msg instanceof LoggedInSuccessfully) {
     let token = msg[0];
-    echo2("Logged in successfully", "src/litebug_gleam.gleam", 275);
+    echo2("Logged in successfully", "src/litebug_gleam.gleam", 282);
     return [
       (() => {
         let _record = model;
@@ -8376,7 +8384,7 @@ function update2(model, msg) {
         })(),
         effect
       ];
-      return echo2(_pipe, "src/litebug_gleam.gleam", 300);
+      return echo2(_pipe, "src/litebug_gleam.gleam", 307);
     } else {
       return [new_model, effect];
     }

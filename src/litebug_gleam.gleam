@@ -66,7 +66,7 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
         | None, HandleOauthPage
         | None, ConfigPage(_)
         | None, LoginPage
-        -> effect.none()
+        -> init_route(current_route)
         None, _ -> modem.replace("/login", None, None)
       },
     ]),
@@ -76,6 +76,13 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
 fn on_url_change(uri: uri.Uri) -> Msg {
   let route = get_route(uri)
   RouteChanged(route)
+}
+
+fn init_route(route: Route) -> effect.Effect(Msg) {
+  effect.from(fn(dispatch) {
+    dispatch(RouteChanged(route))
+    Nil
+  })
 }
 
 fn get_route(uri: uri.Uri) -> Route {
