@@ -1,3 +1,4 @@
+import gleam/option
 import lustre/attribute
 import theme
 
@@ -7,9 +8,10 @@ import sketch/lustre/element
 import sketch/lustre/element/html
 
 pub fn text_input(
-  label: String,
-  value: String,
-  on_change: attribute.Attribute(a),
+  label label: String,
+  value value: String,
+  on_change on_change: attribute.Attribute(a),
+  error error: option.Option(String),
 ) -> element.Element(a) {
   let text_color = theme.color(theme.Text)
   let class = css.class([])
@@ -40,6 +42,19 @@ pub fn text_input(
         ]),
         [attribute.type_("text"), attribute.value(value), on_change],
       ),
+      case error {
+        option.Some(error) ->
+          html.div(
+            css.class([
+              css.color(theme.color(theme.TextError)),
+              css.font_size(px(12)),
+              css.padding_left(px(12)),
+            ]),
+            [],
+            [html.text(error)],
+          )
+        option.None -> element.none()
+      },
     ],
   )
 }

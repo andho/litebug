@@ -2507,17 +2507,17 @@ function push_path(error, name) {
       }
     ])
   );
-  let name$2 = (() => {
-    let $ = decoder(name$1);
-    if ($.isOk()) {
-      let name$22 = $[0];
-      return name$22;
-    } else {
-      let _pipe = toList(["<", classify_dynamic(name$1), ">"]);
-      let _pipe$1 = concat(_pipe);
-      return identity(_pipe$1);
-    }
-  })();
+  let _block;
+  let $ = decoder(name$1);
+  if ($.isOk()) {
+    let name$22 = $[0];
+    _block = name$22;
+  } else {
+    let _pipe = toList(["<", classify_dynamic(name$1), ">"]);
+    let _pipe$1 = concat(_pipe);
+    _block = identity(_pipe$1);
+  }
+  let name$2 = _block;
   let _record = error;
   return new DecodeError(
     _record.expected,
@@ -3038,18 +3038,18 @@ function parse_query_with_question_mark_loop(loop$original, loop$uri_string, loo
     } else if (uri_string.startsWith("#")) {
       let rest = uri_string.slice(1);
       let query = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          _record.path,
-          new Some(query),
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        _record.path,
+        new Some(query),
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_fragment(rest, pieces$1);
     } else if (uri_string === "") {
       return new Ok(
@@ -3088,34 +3088,34 @@ function parse_path_loop(loop$original, loop$uri_string, loop$pieces, loop$size)
     if (uri_string.startsWith("?")) {
       let rest = uri_string.slice(1);
       let path = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_query_with_question_mark(rest, pieces$1);
     } else if (uri_string.startsWith("#")) {
       let rest = uri_string.slice(1);
       let path = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_fragment(rest, pieces$1);
     } else if (uri_string === "") {
       return new Ok(
@@ -3202,47 +3202,47 @@ function parse_port_loop(loop$uri_string, loop$pieces, loop$port) {
       loop$port = port * 10 + 9;
     } else if (uri_string.startsWith("?")) {
       let rest = uri_string.slice(1);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          _record.host,
-          new Some(port),
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        _record.host,
+        new Some(port),
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_query_with_question_mark(rest, pieces$1);
     } else if (uri_string.startsWith("#")) {
       let rest = uri_string.slice(1);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          _record.host,
-          new Some(port),
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        _record.host,
+        new Some(port),
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_fragment(rest, pieces$1);
     } else if (uri_string.startsWith("/")) {
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          _record.host,
-          new Some(port),
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        _record.host,
+        new Some(port),
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_path(uri_string, pieces$1);
     } else if (uri_string === "") {
       return new Ok(
@@ -3334,65 +3334,65 @@ function parse_host_outside_of_brackets_loop(loop$original, loop$uri_string, loo
       );
     } else if (uri_string.startsWith(":")) {
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_port(uri_string, pieces$1);
     } else if (uri_string.startsWith("/")) {
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_path(uri_string, pieces$1);
     } else if (uri_string.startsWith("?")) {
       let rest = uri_string.slice(1);
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_query_with_question_mark(rest, pieces$1);
     } else if (uri_string.startsWith("#")) {
       let rest = uri_string.slice(1);
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_fragment(rest, pieces$1);
     } else {
       let $ = pop_codeunit(uri_string);
@@ -3431,35 +3431,35 @@ function parse_host_within_brackets_loop(loop$original, loop$uri_string, loop$pi
     } else if (uri_string.startsWith("]")) {
       let rest = uri_string.slice(1);
       let host = string_codeunit_slice(original, 0, size + 1);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_port(rest, pieces$1);
     } else if (uri_string.startsWith("/") && size === 0) {
       return parse_path(uri_string, pieces);
     } else if (uri_string.startsWith("/")) {
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_path(uri_string, pieces$1);
     } else if (uri_string.startsWith("?") && size === 0) {
       let rest = uri_string.slice(1);
@@ -3467,18 +3467,18 @@ function parse_host_within_brackets_loop(loop$original, loop$uri_string, loop$pi
     } else if (uri_string.startsWith("?")) {
       let rest = uri_string.slice(1);
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_query_with_question_mark(rest, pieces$1);
     } else if (uri_string.startsWith("#") && size === 0) {
       let rest = uri_string.slice(1);
@@ -3486,18 +3486,18 @@ function parse_host_within_brackets_loop(loop$original, loop$uri_string, loop$pi
     } else if (uri_string.startsWith("#")) {
       let rest = uri_string.slice(1);
       let host = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          _record.userinfo,
-          new Some(host),
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        _record.userinfo,
+        new Some(host),
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_fragment(rest, pieces$1);
     } else {
       let $ = pop_codeunit(uri_string);
@@ -3530,18 +3530,18 @@ function parse_host(uri_string, pieces) {
   if (uri_string.startsWith("[")) {
     return parse_host_within_brackets(uri_string, pieces);
   } else if (uri_string.startsWith(":")) {
-    let pieces$1 = (() => {
-      let _record = pieces;
-      return new Uri(
-        _record.scheme,
-        _record.userinfo,
-        new Some(""),
-        _record.port,
-        _record.path,
-        _record.query,
-        _record.fragment
-      );
-    })();
+    let _block;
+    let _record = pieces;
+    _block = new Uri(
+      _record.scheme,
+      _record.userinfo,
+      new Some(""),
+      _record.port,
+      _record.path,
+      _record.query,
+      _record.fragment
+    );
+    let pieces$1 = _block;
     return parse_port(uri_string, pieces$1);
   } else if (uri_string === "") {
     return new Ok(
@@ -3574,18 +3574,18 @@ function parse_userinfo_loop(loop$original, loop$uri_string, loop$pieces, loop$s
     } else if (uri_string.startsWith("@")) {
       let rest = uri_string.slice(1);
       let userinfo = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          _record.scheme,
-          new Some(userinfo),
-          _record.host,
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        _record.scheme,
+        new Some(userinfo),
+        _record.host,
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_host(rest, pieces$1);
     } else if (uri_string === "") {
       return parse_host(original, pieces);
@@ -3641,18 +3641,18 @@ function parse_scheme_loop(loop$original, loop$uri_string, loop$pieces, loop$siz
       return parse_authority_with_slashes(uri_string, pieces);
     } else if (uri_string.startsWith("/")) {
       let scheme = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          new Some(lowercase(scheme)),
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        new Some(lowercase(scheme)),
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_authority_with_slashes(uri_string, pieces$1);
     } else if (uri_string.startsWith("?") && size === 0) {
       let rest = uri_string.slice(1);
@@ -3660,18 +3660,18 @@ function parse_scheme_loop(loop$original, loop$uri_string, loop$pieces, loop$siz
     } else if (uri_string.startsWith("?")) {
       let rest = uri_string.slice(1);
       let scheme = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          new Some(lowercase(scheme)),
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        new Some(lowercase(scheme)),
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_query_with_question_mark(rest, pieces$1);
     } else if (uri_string.startsWith("#") && size === 0) {
       let rest = uri_string.slice(1);
@@ -3679,36 +3679,36 @@ function parse_scheme_loop(loop$original, loop$uri_string, loop$pieces, loop$siz
     } else if (uri_string.startsWith("#")) {
       let rest = uri_string.slice(1);
       let scheme = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          new Some(lowercase(scheme)),
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        new Some(lowercase(scheme)),
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_fragment(rest, pieces$1);
     } else if (uri_string.startsWith(":") && size === 0) {
       return new Error(void 0);
     } else if (uri_string.startsWith(":")) {
       let rest = uri_string.slice(1);
       let scheme = string_codeunit_slice(original, 0, size);
-      let pieces$1 = (() => {
-        let _record = pieces;
-        return new Uri(
-          new Some(lowercase(scheme)),
-          _record.userinfo,
-          _record.host,
-          _record.port,
-          _record.path,
-          _record.query,
-          _record.fragment
-        );
-      })();
+      let _block;
+      let _record = pieces;
+      _block = new Uri(
+        new Some(lowercase(scheme)),
+        _record.userinfo,
+        _record.host,
+        _record.port,
+        _record.path,
+        _record.query,
+        _record.fragment
+      );
+      let pieces$1 = _block;
       return parse_authority_with_slashes(rest, pieces$1);
     } else if (uri_string === "") {
       return new Ok(
@@ -3744,24 +3744,24 @@ function remove_dot_segments_loop(loop$input, loop$accumulator) {
     } else {
       let segment = input2.head;
       let rest = input2.tail;
-      let accumulator$1 = (() => {
-        if (segment === "") {
-          let accumulator$12 = accumulator;
-          return accumulator$12;
-        } else if (segment === ".") {
-          let accumulator$12 = accumulator;
-          return accumulator$12;
-        } else if (segment === ".." && accumulator.hasLength(0)) {
-          return toList([]);
-        } else if (segment === ".." && accumulator.atLeastLength(1)) {
-          let accumulator$12 = accumulator.tail;
-          return accumulator$12;
-        } else {
-          let segment$1 = segment;
-          let accumulator$12 = accumulator;
-          return prepend(segment$1, accumulator$12);
-        }
-      })();
+      let _block;
+      if (segment === "") {
+        let accumulator$12 = accumulator;
+        _block = accumulator$12;
+      } else if (segment === ".") {
+        let accumulator$12 = accumulator;
+        _block = accumulator$12;
+      } else if (segment === ".." && accumulator.hasLength(0)) {
+        _block = toList([]);
+      } else if (segment === ".." && accumulator.atLeastLength(1)) {
+        let accumulator$12 = accumulator.tail;
+        _block = accumulator$12;
+      } else {
+        let segment$1 = segment;
+        let accumulator$12 = accumulator;
+        _block = prepend(segment$1, accumulator$12);
+      }
+      let accumulator$1 = _block;
       loop$input = rest;
       loop$accumulator = accumulator$1;
     }
@@ -3774,77 +3774,77 @@ function path_segments(path) {
   return remove_dot_segments(split2(path, "/"));
 }
 function to_string3(uri) {
-  let parts = (() => {
-    let $ = uri.fragment;
-    if ($ instanceof Some) {
-      let fragment2 = $[0];
-      return toList(["#", fragment2]);
-    } else {
-      return toList([]);
-    }
-  })();
-  let parts$1 = (() => {
-    let $ = uri.query;
-    if ($ instanceof Some) {
-      let query = $[0];
-      return prepend("?", prepend(query, parts));
-    } else {
-      return parts;
-    }
-  })();
+  let _block;
+  let $ = uri.fragment;
+  if ($ instanceof Some) {
+    let fragment2 = $[0];
+    _block = toList(["#", fragment2]);
+  } else {
+    _block = toList([]);
+  }
+  let parts = _block;
+  let _block$1;
+  let $1 = uri.query;
+  if ($1 instanceof Some) {
+    let query = $1[0];
+    _block$1 = prepend("?", prepend(query, parts));
+  } else {
+    _block$1 = parts;
+  }
+  let parts$1 = _block$1;
   let parts$2 = prepend(uri.path, parts$1);
-  let parts$3 = (() => {
-    let $ = uri.host;
-    let $1 = starts_with(uri.path, "/");
-    if ($ instanceof Some && !$1 && $[0] !== "") {
-      let host = $[0];
-      return prepend("/", parts$2);
-    } else {
-      return parts$2;
-    }
-  })();
-  let parts$4 = (() => {
-    let $ = uri.host;
-    let $1 = uri.port;
-    if ($ instanceof Some && $1 instanceof Some) {
-      let port = $1[0];
-      return prepend(":", prepend(to_string(port), parts$3));
-    } else {
-      return parts$3;
-    }
-  })();
-  let parts$5 = (() => {
-    let $ = uri.scheme;
-    let $1 = uri.userinfo;
-    let $2 = uri.host;
-    if ($ instanceof Some && $1 instanceof Some && $2 instanceof Some) {
-      let s = $[0];
-      let u = $1[0];
-      let h = $2[0];
-      return prepend(
-        s,
-        prepend(
-          "://",
-          prepend(u, prepend("@", prepend(h, parts$4)))
-        )
-      );
-    } else if ($ instanceof Some && $1 instanceof None && $2 instanceof Some) {
-      let s = $[0];
-      let h = $2[0];
-      return prepend(s, prepend("://", prepend(h, parts$4)));
-    } else if ($ instanceof Some && $1 instanceof Some && $2 instanceof None) {
-      let s = $[0];
-      return prepend(s, prepend(":", parts$4));
-    } else if ($ instanceof Some && $1 instanceof None && $2 instanceof None) {
-      let s = $[0];
-      return prepend(s, prepend(":", parts$4));
-    } else if ($ instanceof None && $1 instanceof None && $2 instanceof Some) {
-      let h = $2[0];
-      return prepend("//", prepend(h, parts$4));
-    } else {
-      return parts$4;
-    }
-  })();
+  let _block$2;
+  let $2 = uri.host;
+  let $3 = starts_with(uri.path, "/");
+  if ($2 instanceof Some && !$3 && $2[0] !== "") {
+    let host = $2[0];
+    _block$2 = prepend("/", parts$2);
+  } else {
+    _block$2 = parts$2;
+  }
+  let parts$3 = _block$2;
+  let _block$3;
+  let $4 = uri.host;
+  let $5 = uri.port;
+  if ($4 instanceof Some && $5 instanceof Some) {
+    let port = $5[0];
+    _block$3 = prepend(":", prepend(to_string(port), parts$3));
+  } else {
+    _block$3 = parts$3;
+  }
+  let parts$4 = _block$3;
+  let _block$4;
+  let $6 = uri.scheme;
+  let $7 = uri.userinfo;
+  let $8 = uri.host;
+  if ($6 instanceof Some && $7 instanceof Some && $8 instanceof Some) {
+    let s = $6[0];
+    let u = $7[0];
+    let h = $8[0];
+    _block$4 = prepend(
+      s,
+      prepend(
+        "://",
+        prepend(u, prepend("@", prepend(h, parts$4)))
+      )
+    );
+  } else if ($6 instanceof Some && $7 instanceof None && $8 instanceof Some) {
+    let s = $6[0];
+    let h = $8[0];
+    _block$4 = prepend(s, prepend("://", prepend(h, parts$4)));
+  } else if ($6 instanceof Some && $7 instanceof Some && $8 instanceof None) {
+    let s = $6[0];
+    _block$4 = prepend(s, prepend(":", parts$4));
+  } else if ($6 instanceof Some && $7 instanceof None && $8 instanceof None) {
+    let s = $6[0];
+    _block$4 = prepend(s, prepend(":", parts$4));
+  } else if ($6 instanceof None && $7 instanceof None && $8 instanceof Some) {
+    let h = $8[0];
+    _block$4 = prepend("//", prepend(h, parts$4));
+  } else {
+    _block$4 = parts$4;
+  }
+  let parts$5 = _block$4;
   return concat2(parts$5);
 }
 var empty = /* @__PURE__ */ new Uri(
@@ -4031,13 +4031,13 @@ function set_query(req, query) {
   let pair = (t) => {
     return percent_encode(t[0]) + "=" + percent_encode(t[1]);
   };
-  let query$1 = (() => {
-    let _pipe = query;
-    let _pipe$1 = map2(_pipe, pair);
-    let _pipe$2 = intersperse(_pipe$1, "&");
-    let _pipe$3 = concat2(_pipe$2);
-    return new Some(_pipe$3);
-  })();
+  let _block;
+  let _pipe = query;
+  let _pipe$1 = map2(_pipe, pair);
+  let _pipe$2 = intersperse(_pipe$1, "&");
+  let _pipe$3 = concat2(_pipe$2);
+  _block = new Some(_pipe$3);
+  let query$1 = _block;
   let _record = req;
   return new Request(
     _record.method,
@@ -4310,35 +4310,35 @@ function get_access_token(config, verifier, code2) {
     ["redirect_uri", config.redirect_uri],
     ["code_verifier", verifier]
   ]);
-  let req_body = (() => {
-    let _pipe = newFormData();
-    let _pipe$1 = setFormData(_pipe, "client_id", config.client_id);
-    let _pipe$2 = setFormData(_pipe$1, "grant_type", "authorization_code");
-    let _pipe$3 = setFormData(_pipe$2, "code", code2);
-    let _pipe$4 = setFormData(_pipe$3, "redirect_uri", config.redirect_uri);
-    return setFormData(_pipe$4, "code_verifier", verifier);
-  })();
+  let _block;
+  let _pipe = newFormData();
+  let _pipe$1 = setFormData(_pipe, "client_id", config.client_id);
+  let _pipe$2 = setFormData(_pipe$1, "grant_type", "authorization_code");
+  let _pipe$3 = setFormData(_pipe$2, "code", code2);
+  let _pipe$4 = setFormData(_pipe$3, "redirect_uri", config.redirect_uri);
+  _block = setFormData(_pipe$4, "code_verifier", verifier);
+  let req_body = _block;
   return try_await(
     (() => {
-      let _pipe = config.token_url;
-      let _pipe$1 = to(_pipe);
-      let _pipe$2 = resolve(_pipe$1);
+      let _pipe$5 = config.token_url;
+      let _pipe$6 = to(_pipe$5);
+      let _pipe$7 = resolve(_pipe$6);
       return then_await(
-        _pipe$2,
+        _pipe$7,
         (req_promise) => {
           if (req_promise.isOk()) {
             let req = req_promise[0];
-            let _pipe$3 = req;
-            let _pipe$4 = set_body(_pipe$3, req_body);
-            let _pipe$5 = set_method(_pipe$4, new Post());
-            let _pipe$6 = send_form_data(_pipe$5);
-            let _pipe$7 = try_await(_pipe$6, read_json_body);
+            let _pipe$8 = req;
+            let _pipe$9 = set_body(_pipe$8, req_body);
+            let _pipe$10 = set_method(_pipe$9, new Post());
+            let _pipe$11 = send_form_data(_pipe$10);
+            let _pipe$12 = try_await(_pipe$11, read_json_body);
             return map_promise(
-              _pipe$7,
+              _pipe$12,
               (res_promise) => {
-                let _pipe$8 = res_promise;
+                let _pipe$13 = res_promise;
                 return replace_error(
-                  _pipe$8,
+                  _pipe$13,
                   "Could not get access token"
                 );
               }
@@ -4351,13 +4351,13 @@ function get_access_token(config, verifier, code2) {
     })(),
     (res) => {
       let decoder = token_resp_decoder();
-      let _pipe = res.body;
-      let _pipe$1 = run(_pipe, decoder);
-      let _pipe$2 = replace_error(
-        _pipe$1,
+      let _pipe$5 = res.body;
+      let _pipe$6 = run(_pipe$5, decoder);
+      let _pipe$7 = replace_error(
+        _pipe$6,
         "Could not decode access token response"
       );
-      return resolve(_pipe$2);
+      return resolve(_pipe$7);
     }
   );
 }
@@ -6040,13 +6040,13 @@ function compute_classes(id, name, properties) {
 }
 function compute_property(indent2, key3, value4, important) {
   let base_indent = indent(indent2);
-  let important$1 = (() => {
-    if (important) {
-      return " !important";
-    } else {
-      return "";
-    }
-  })();
+  let _block;
+  if (important) {
+    _block = " !important";
+  } else {
+    _block = "";
+  }
+  let important$1 = _block;
   return base_indent + key3 + ": " + value4 + important$1 + ";";
 }
 function handle_property(props, property2) {
@@ -6188,21 +6188,21 @@ function insert_class_in_cache(cache, class$5) {
   let $ = compute_properties(cache, class$5.content, 2, "");
   let cache$1 = $[0];
   let properties = $[1];
-  let class_ = (() => {
-    let _pipe2 = class$5.as_string;
-    let _pipe$12 = xxHash32(_pipe2);
-    return compute_classes(_pipe$12, class$5.name, properties);
-  })();
-  let _pipe = class_;
-  let _pipe$1 = new$(_pipe, properties);
-  let _pipe$2 = ((_capture) => {
+  let _block;
+  let _pipe = class$5.as_string;
+  let _pipe$1 = xxHash32(_pipe);
+  _block = compute_classes(_pipe$1, class$5.name, properties);
+  let class_ = _block;
+  let _pipe$2 = class_;
+  let _pipe$3 = new$(_pipe$2, properties);
+  let _pipe$4 = ((_capture) => {
     return insert(cache$1.cache, class$5.as_string, _capture);
-  })(_pipe$1);
-  let _pipe$3 = ((cache_) => {
+  })(_pipe$3);
+  let _pipe$5 = ((cache_) => {
     let _record = cache$1;
     return new Cache(cache_, _record.at_rules);
-  })(_pipe$2);
-  return new$(_pipe$3, class_);
+  })(_pipe$4);
+  return new$(_pipe$5, class_);
 }
 function computed_class(class$5, cache) {
   return lazy_guard(
@@ -6746,6 +6746,9 @@ var Element3 = class extends CustomType {
     this.children = children2;
   }
 };
+function none3() {
+  return new Nothing();
+}
 function text3(content) {
   return new Text2(content);
 }
@@ -6794,22 +6797,22 @@ function unstyled(loop$stylesheet, loop$element) {
         }
       );
       let class_name3 = map(class$1, second);
-      let stylesheet$1 = (() => {
-        let _pipe = map(class$1, first);
-        return unwrap(_pipe, stylesheet2);
-      })();
+      let _block;
+      let _pipe = map(class$1, first);
+      _block = unwrap(_pipe, stylesheet2);
+      let stylesheet$1 = _block;
       let $ = unstyled_children(stylesheet$1, children2);
       let stylesheet$2 = $[0];
       let children$1 = $[1];
-      let attributes$1 = (() => {
-        if (class_name3 instanceof None) {
-          return attributes;
-        } else {
-          let class_name$1 = class_name3[0];
-          let class_name$2 = class$(class_name$1);
-          return prepend(class_name$2, attributes);
-        }
-      })();
+      let _block$1;
+      if (class_name3 instanceof None) {
+        _block$1 = attributes;
+      } else {
+        let class_name$1 = class_name3[0];
+        let class_name$2 = class$(class_name$1);
+        _block$1 = prepend(class_name$2, attributes);
+      }
+      let attributes$1 = _block$1;
       return [
         stylesheet$2,
         (() => {
@@ -6946,15 +6949,15 @@ function valid_colour_value(c) {
   }
 }
 function hue_to_rgb(hue, m1, m2) {
-  let h = (() => {
-    if (hue < 0) {
-      return hue + 1;
-    } else if (hue > 1) {
-      return hue - 1;
-    } else {
-      return hue;
-    }
-  })();
+  let _block;
+  if (hue < 0) {
+    _block = hue + 1;
+  } else if (hue > 1) {
+    _block = hue - 1;
+  } else {
+    _block = hue;
+  }
+  let h = _block;
   let h_t_6 = h * 6;
   let h_t_2 = h * 2;
   let h_t_3 = h * 3;
@@ -6969,14 +6972,14 @@ function hue_to_rgb(hue, m1, m2) {
   }
 }
 function hsla_to_rgba(h, s, l, a2) {
-  let m2 = (() => {
-    let $ = l <= 0.5;
-    if ($) {
-      return l * (s + 1);
-    } else {
-      return l + s - l * s;
-    }
-  })();
+  let _block;
+  let $ = l <= 0.5;
+  if ($) {
+    _block = l * (s + 1);
+  } else {
+    _block = l + s - l * s;
+  }
+  let m2 = _block;
   let m1 = l * 2 - m2;
   let r = hue_to_rgb(h + divideFloat(1, 3), m1, m2);
   let g = hue_to_rgb(h, m1, m2);
@@ -7011,12 +7014,12 @@ function from_rgba_hex(hex) {
   if ($) {
     return new Error(void 0);
   } else {
-    let $1 = (() => {
-      let _pipe = bitwise_shift_right(hex, 24);
-      let _pipe$1 = bitwise_and(_pipe, 255);
-      let _pipe$2 = identity(_pipe$1);
-      return divide(_pipe$2, 255);
-    })();
+    let _block;
+    let _pipe = bitwise_shift_right(hex, 24);
+    let _pipe$1 = bitwise_and(_pipe, 255);
+    let _pipe$2 = identity(_pipe$1);
+    _block = divide(_pipe$2, 255);
+    let $1 = _block;
     if (!$1.isOk()) {
       throw makeError(
         "let_assert",
@@ -7028,12 +7031,12 @@ function from_rgba_hex(hex) {
       );
     }
     let r = $1[0];
-    let $2 = (() => {
-      let _pipe = bitwise_shift_right(hex, 16);
-      let _pipe$1 = bitwise_and(_pipe, 255);
-      let _pipe$2 = identity(_pipe$1);
-      return divide(_pipe$2, 255);
-    })();
+    let _block$1;
+    let _pipe$3 = bitwise_shift_right(hex, 16);
+    let _pipe$4 = bitwise_and(_pipe$3, 255);
+    let _pipe$5 = identity(_pipe$4);
+    _block$1 = divide(_pipe$5, 255);
+    let $2 = _block$1;
     if (!$2.isOk()) {
       throw makeError(
         "let_assert",
@@ -7045,12 +7048,12 @@ function from_rgba_hex(hex) {
       );
     }
     let g = $2[0];
-    let $3 = (() => {
-      let _pipe = bitwise_shift_right(hex, 8);
-      let _pipe$1 = bitwise_and(_pipe, 255);
-      let _pipe$2 = identity(_pipe$1);
-      return divide(_pipe$2, 255);
-    })();
+    let _block$2;
+    let _pipe$6 = bitwise_shift_right(hex, 8);
+    let _pipe$7 = bitwise_and(_pipe$6, 255);
+    let _pipe$8 = identity(_pipe$7);
+    _block$2 = divide(_pipe$8, 255);
+    let $3 = _block$2;
     if (!$3.isOk()) {
       throw makeError(
         "let_assert",
@@ -7062,11 +7065,11 @@ function from_rgba_hex(hex) {
       );
     }
     let b = $3[0];
-    let $4 = (() => {
-      let _pipe = bitwise_and(hex, 255);
-      let _pipe$1 = identity(_pipe);
-      return divide(_pipe$1, 255);
-    })();
+    let _block$3;
+    let _pipe$9 = bitwise_and(hex, 255);
+    let _pipe$10 = identity(_pipe$9);
+    _block$3 = divide(_pipe$10, 255);
+    let $4 = _block$3;
     if (!$4.isOk()) {
       throw makeError(
         "let_assert",
@@ -7102,25 +7105,25 @@ function to_rgba_hex(colour) {
   let g = $[1];
   let b = $[2];
   let a2 = $[3];
-  let red$1 = (() => {
-    let _pipe = r * 255;
-    let _pipe$1 = round2(_pipe);
-    return bitwise_shift_left(_pipe$1, 24);
-  })();
-  let green$1 = (() => {
-    let _pipe = g * 255;
-    let _pipe$1 = round2(_pipe);
-    return bitwise_shift_left(_pipe$1, 16);
-  })();
-  let blue$1 = (() => {
-    let _pipe = b * 255;
-    let _pipe$1 = round2(_pipe);
-    return bitwise_shift_left(_pipe$1, 8);
-  })();
-  let alpha = (() => {
-    let _pipe = a2 * 255;
-    return round2(_pipe);
-  })();
+  let _block;
+  let _pipe = r * 255;
+  let _pipe$1 = round2(_pipe);
+  _block = bitwise_shift_left(_pipe$1, 24);
+  let red$1 = _block;
+  let _block$1;
+  let _pipe$2 = g * 255;
+  let _pipe$3 = round2(_pipe$2);
+  _block$1 = bitwise_shift_left(_pipe$3, 16);
+  let green$1 = _block$1;
+  let _block$2;
+  let _pipe$4 = b * 255;
+  let _pipe$5 = round2(_pipe$4);
+  _block$2 = bitwise_shift_left(_pipe$5, 8);
+  let blue$1 = _block$2;
+  let _block$3;
+  let _pipe$6 = a2 * 255;
+  _block$3 = round2(_pipe$6);
+  let alpha = _block$3;
   return red$1 + green$1 + blue$1 + alpha;
 }
 function to_rgba_hex_string(colour) {
@@ -7247,6 +7250,10 @@ var TextSoft = class extends CustomType {
 };
 var TextSofter = class extends CustomType {
 };
+var TextError = class extends CustomType {
+};
+var TextSuccess = class extends CustomType {
+};
 var Accent = class extends CustomType {
 };
 var ButtonBgPrimary = class extends CustomType {
@@ -7284,56 +7291,60 @@ var BorderSofter = class extends CustomType {
 var InputBg = class extends CustomType {
 };
 function color3(theme_color) {
-  let color$1 = (() => {
-    let _pipe = (() => {
-      if (theme_color instanceof Background) {
-        return color2(new Nord1());
-      } else if (theme_color instanceof Text3) {
-        return color2(new Nord4());
-      } else if (theme_color instanceof TextSoft) {
-        return color2(new Nord5());
-      } else if (theme_color instanceof TextSofter) {
-        return color2(new Nord6());
-      } else if (theme_color instanceof Accent) {
-        return color2(new Nord10());
-      } else if (theme_color instanceof ButtonBgPrimary) {
-        return color2(new Nord10());
-      } else if (theme_color instanceof ButtonBgSecondary) {
-        return color2(new Nord4());
-      } else if (theme_color instanceof ButtonBgWarn) {
-        return color2(new Nord11());
-      } else if (theme_color instanceof ButtonBgDanger) {
-        return color2(new Nord13());
-      } else if (theme_color instanceof ButtonTextPrimary) {
-        return color2(new Nord4());
-      } else if (theme_color instanceof ButtonTextSecondary) {
-        return color2(new Nord0());
-      } else if (theme_color instanceof ButtonTextWarn) {
-        return color2(new Nord9());
-      } else if (theme_color instanceof ButtonTextDanger) {
-        return color2(new Nord13());
-      } else if (theme_color instanceof CardBackground) {
-        return color2(new Nord2());
-      } else if (theme_color instanceof CardBackgroundPrimary) {
-        return color2(new Nord1());
-      } else if (theme_color instanceof CardBackgroundSecondary) {
-        return color2(new Nord2());
-      } else if (theme_color instanceof CardBackgroundWarn) {
-        return color2(new Nord11());
-      } else if (theme_color instanceof CardBackgroundDanger) {
-        return color2(new Nord13());
-      } else if (theme_color instanceof Border) {
-        return color2(new Nord3());
-      } else if (theme_color instanceof BorderSoft) {
-        return color2(new Nord5());
-      } else if (theme_color instanceof BorderSofter) {
-        return color2(new Nord6());
-      } else {
-        return color2(new Nord0());
-      }
-    })();
-    return to_rgba_hex_string(_pipe);
-  })();
+  let _block$1;
+  if (theme_color instanceof Background) {
+    _block$1 = color2(new Nord1());
+  } else if (theme_color instanceof Text3) {
+    _block$1 = color2(new Nord4());
+  } else if (theme_color instanceof TextSoft) {
+    _block$1 = color2(new Nord5());
+  } else if (theme_color instanceof TextSofter) {
+    _block$1 = color2(new Nord6());
+  } else if (theme_color instanceof TextError) {
+    _block$1 = color2(new Nord11());
+  } else if (theme_color instanceof TextSuccess) {
+    _block$1 = color2(new Nord12());
+  } else if (theme_color instanceof Accent) {
+    _block$1 = color2(new Nord10());
+  } else if (theme_color instanceof ButtonBgPrimary) {
+    _block$1 = color2(new Nord10());
+  } else if (theme_color instanceof ButtonBgSecondary) {
+    _block$1 = color2(new Nord4());
+  } else if (theme_color instanceof ButtonBgWarn) {
+    _block$1 = color2(new Nord11());
+  } else if (theme_color instanceof ButtonBgDanger) {
+    _block$1 = color2(new Nord13());
+  } else if (theme_color instanceof ButtonTextPrimary) {
+    _block$1 = color2(new Nord4());
+  } else if (theme_color instanceof ButtonTextSecondary) {
+    _block$1 = color2(new Nord0());
+  } else if (theme_color instanceof ButtonTextWarn) {
+    _block$1 = color2(new Nord9());
+  } else if (theme_color instanceof ButtonTextDanger) {
+    _block$1 = color2(new Nord13());
+  } else if (theme_color instanceof CardBackground) {
+    _block$1 = color2(new Nord2());
+  } else if (theme_color instanceof CardBackgroundPrimary) {
+    _block$1 = color2(new Nord1());
+  } else if (theme_color instanceof CardBackgroundSecondary) {
+    _block$1 = color2(new Nord2());
+  } else if (theme_color instanceof CardBackgroundWarn) {
+    _block$1 = color2(new Nord11());
+  } else if (theme_color instanceof CardBackgroundDanger) {
+    _block$1 = color2(new Nord13());
+  } else if (theme_color instanceof Border) {
+    _block$1 = color2(new Nord3());
+  } else if (theme_color instanceof BorderSoft) {
+    _block$1 = color2(new Nord5());
+  } else if (theme_color instanceof BorderSofter) {
+    _block$1 = color2(new Nord6());
+  } else {
+    _block$1 = color2(new Nord0());
+  }
+  let _block;
+  let _pipe = _block$1;
+  _block = to_rgba_hex_string(_pipe);
+  let color$1 = _block;
   return "#" + color$1;
 }
 
@@ -7345,28 +7356,28 @@ var Secondary = class extends CustomType {
 var Warn = class extends CustomType {
 };
 function button2(label, variant, on_click2) {
-  let bg_color = (() => {
-    if (variant instanceof Primary) {
-      return color3(new ButtonBgPrimary());
-    } else if (variant instanceof Secondary) {
-      return color3(new ButtonBgSecondary());
-    } else if (variant instanceof Warn) {
-      return color3(new ButtonBgWarn());
-    } else {
-      return color3(new ButtonBgDanger());
-    }
-  })();
-  let text_color = (() => {
-    if (variant instanceof Primary) {
-      return color3(new ButtonTextPrimary());
-    } else if (variant instanceof Secondary) {
-      return color3(new ButtonTextSecondary());
-    } else if (variant instanceof Warn) {
-      return color3(new ButtonTextWarn());
-    } else {
-      return color3(new ButtonTextDanger());
-    }
-  })();
+  let _block;
+  if (variant instanceof Primary) {
+    _block = color3(new ButtonBgPrimary());
+  } else if (variant instanceof Secondary) {
+    _block = color3(new ButtonBgSecondary());
+  } else if (variant instanceof Warn) {
+    _block = color3(new ButtonBgWarn());
+  } else {
+    _block = color3(new ButtonBgDanger());
+  }
+  let bg_color = _block;
+  let _block$1;
+  if (variant instanceof Primary) {
+    _block$1 = color3(new ButtonTextPrimary());
+  } else if (variant instanceof Secondary) {
+    _block$1 = color3(new ButtonTextSecondary());
+  } else if (variant instanceof Warn) {
+    _block$1 = color3(new ButtonTextWarn());
+  } else {
+    _block$1 = color3(new ButtonTextDanger());
+  }
+  let text_color = _block$1;
   let class$5 = class$4(
     toList([
       background(bg_color),
@@ -7393,28 +7404,28 @@ function button2(label, variant, on_click2) {
   );
 }
 function link_button(label, variant, href2) {
-  let bg_color = (() => {
-    if (variant instanceof Primary) {
-      return color3(new ButtonBgPrimary());
-    } else if (variant instanceof Secondary) {
-      return color3(new ButtonBgSecondary());
-    } else if (variant instanceof Warn) {
-      return color3(new ButtonBgWarn());
-    } else {
-      return color3(new ButtonBgDanger());
-    }
-  })();
-  let text_color = (() => {
-    if (variant instanceof Primary) {
-      return color3(new ButtonTextPrimary());
-    } else if (variant instanceof Secondary) {
-      return color3(new ButtonTextSecondary());
-    } else if (variant instanceof Warn) {
-      return color3(new ButtonTextWarn());
-    } else {
-      return color3(new ButtonTextDanger());
-    }
-  })();
+  let _block;
+  if (variant instanceof Primary) {
+    _block = color3(new ButtonBgPrimary());
+  } else if (variant instanceof Secondary) {
+    _block = color3(new ButtonBgSecondary());
+  } else if (variant instanceof Warn) {
+    _block = color3(new ButtonBgWarn());
+  } else {
+    _block = color3(new ButtonBgDanger());
+  }
+  let bg_color = _block;
+  let _block$1;
+  if (variant instanceof Primary) {
+    _block$1 = color3(new ButtonTextPrimary());
+  } else if (variant instanceof Secondary) {
+    _block$1 = color3(new ButtonTextSecondary());
+  } else if (variant instanceof Warn) {
+    _block$1 = color3(new ButtonTextWarn());
+  } else {
+    _block$1 = color3(new ButtonTextDanger());
+  }
+  let text_color = _block$1;
   let class$5 = class$4(
     toList([
       background(bg_color),
@@ -7436,7 +7447,7 @@ function link_button(label, variant, href2) {
 }
 
 // build/dev/javascript/litebug_gleam/components/text_input.mjs
-function text_input(label, value4, on_change) {
+function text_input(label, value4, on_change, error) {
   let text_color = color3(new Text3());
   let class$5 = class$4(toList([]));
   return div(
@@ -7470,9 +7481,61 @@ function text_input(label, value4, on_change) {
           ])
         ),
         toList([type_("text"), value(value4), on_change])
-      )
+      ),
+      (() => {
+        if (error instanceof Some) {
+          let error$1 = error[0];
+          return div(
+            class$4(
+              toList([
+                color(color3(new TextError())),
+                font_size(px(12)),
+                padding_left(px(12))
+              ])
+            ),
+            toList([]),
+            toList([text4(error$1)])
+          );
+        } else {
+          return none3();
+        }
+      })()
     ])
   );
+}
+
+// build/dev/javascript/litebug_gleam/filter.mjs
+function required(next) {
+  return (val) => {
+    if (val.isOk()) {
+      let val$1 = val[0];
+      if (val$1 === "") {
+        return new Error("Field is required");
+      } else {
+        return next(new Ok(val$1));
+      }
+    } else {
+      let err = val[0];
+      return new Error(err);
+    }
+  };
+}
+function to_msg(fun) {
+  return (_capture) => {
+    return map3(_capture, fun);
+  };
+}
+function process2(next, error_fn) {
+  return (val) => {
+    let $ = next(new Ok(val));
+    if ($.isOk()) {
+      let val$1 = $[0];
+      return val$1;
+    } else {
+      let err = $[0];
+      return error_fn(err);
+    }
+  };
 }
 
 // build/dev/javascript/litebug_gleam/style.mjs
@@ -7481,7 +7544,21 @@ function text_body() {
 }
 
 // build/dev/javascript/litebug_gleam/pages/config_page.mjs
+var ConfigModel = class extends CustomType {
+  constructor(config, errors) {
+    super();
+    this.config = config;
+    this.errors = errors;
+  }
+};
 var ConfigFieldChanged = class extends CustomType {
+  constructor(x0, x1) {
+    super();
+    this[0] = x0;
+    this[1] = x1;
+  }
+};
+var InvalidValue = class extends CustomType {
   constructor(x0, x1) {
     super();
     this[0] = x0;
@@ -7503,13 +7580,31 @@ var ClientId = class extends CustomType {
 var Scope = class extends CustomType {
 };
 function default_model() {
-  return new OAuth2ClientConfig("", "", "", "", "");
+  return new ConfigModel(
+    new OAuth2ClientConfig("", "", "", "", ""),
+    new_map()
+  );
 }
 function config_view(model, stylesheet2) {
+  let config = model.config;
   return render2(
     stylesheet2,
     toList([node()]),
     () => {
+      let _block;
+      let _pipe = to_msg(
+        (a3) => {
+          return new ConfigFieldChanged(new AuthorizeUrl(), a3);
+        }
+      );
+      let _pipe$1 = required(_pipe);
+      _block = process2(
+        _pipe$1,
+        (err) => {
+          return new InvalidValue(new AuthorizeUrl(), err);
+        }
+      );
+      let a2 = _block;
       return div(
         class$4(
           toList([
@@ -7551,48 +7646,49 @@ function config_view(model, stylesheet2) {
             toList([
               text_input(
                 "Authorize URL",
-                model.authorize_url,
-                on_input(
-                  (_capture) => {
-                    return new ConfigFieldChanged(new AuthorizeUrl(), _capture);
-                  }
-                )
+                config.authorize_url,
+                on_input(a2),
+                from_result(map_get(model.errors, new AuthorizeUrl()))
               ),
               text_input(
                 "Token URL",
-                model.token_url,
+                config.token_url,
                 on_input(
                   (_capture) => {
                     return new ConfigFieldChanged(new TokenUrl(), _capture);
                   }
-                )
+                ),
+                new None()
               ),
               text_input(
                 "Redirect URI",
-                model.redirect_uri,
+                config.redirect_uri,
                 on_input(
                   (_capture) => {
                     return new ConfigFieldChanged(new RedirectUri(), _capture);
                   }
-                )
+                ),
+                new None()
               ),
               text_input(
                 "Client ID",
-                model.client_id,
+                config.client_id,
                 on_input(
                   (_capture) => {
                     return new ConfigFieldChanged(new ClientId(), _capture);
                   }
-                )
+                ),
+                new None()
               ),
               text_input(
                 "Scope",
-                model.scope,
+                config.scope,
                 on_input(
                   (_capture) => {
                     return new ConfigFieldChanged(new Scope(), _capture);
                   }
-                )
+                ),
+                from_result(map_get(model.errors, new Scope()))
               )
             ])
           ),
@@ -7677,98 +7773,93 @@ function oauth2_config_encoder(config) {
   return to_string2(_pipe);
 }
 function save_config_storage(config) {
-  let $ = (() => {
-    let _pipe = localStorage();
-    return map3(
-      _pipe,
-      (_capture) => {
-        return setItem(
-          _capture,
-          "glebs_config",
-          oauth2_config_encoder(config)
-        );
-      }
-    );
-  })();
-  return echo("Saved config", "src/pages/config_page.gleam", 168);
+  let _block;
+  let _pipe = localStorage();
+  _block = map3(
+    _pipe,
+    (_capture) => {
+      return setItem(
+        _capture,
+        "glebs_config",
+        oauth2_config_encoder(config)
+      );
+    }
+  );
+  let $ = _block;
+  return echo("Saved config", "src/pages/config_page.gleam", 181);
 }
 function update(model, msg) {
   if (msg instanceof ConfigFieldChanged) {
     let field3 = msg[0];
     let value4 = msg[1];
+    let _block;
     if (field3 instanceof AuthorizeUrl) {
-      return [
-        (() => {
-          let _record = model;
-          return new OAuth2ClientConfig(
-            _record.client_id,
-            value4,
-            _record.token_url,
-            _record.redirect_uri,
-            _record.scope
-          );
-        })(),
-        none()
-      ];
+      let _record = model.config;
+      _block = new OAuth2ClientConfig(
+        _record.client_id,
+        value4,
+        _record.token_url,
+        _record.redirect_uri,
+        _record.scope
+      );
     } else if (field3 instanceof TokenUrl) {
-      return [
-        (() => {
-          let _record = model;
-          return new OAuth2ClientConfig(
-            _record.client_id,
-            _record.authorize_url,
-            value4,
-            _record.redirect_uri,
-            _record.scope
-          );
-        })(),
-        none()
-      ];
+      let _record = model.config;
+      _block = new OAuth2ClientConfig(
+        _record.client_id,
+        _record.authorize_url,
+        value4,
+        _record.redirect_uri,
+        _record.scope
+      );
     } else if (field3 instanceof RedirectUri) {
-      return [
-        (() => {
-          let _record = model;
-          return new OAuth2ClientConfig(
-            _record.client_id,
-            _record.authorize_url,
-            _record.token_url,
-            value4,
-            _record.scope
-          );
-        })(),
-        none()
-      ];
+      let _record = model.config;
+      _block = new OAuth2ClientConfig(
+        _record.client_id,
+        _record.authorize_url,
+        _record.token_url,
+        value4,
+        _record.scope
+      );
     } else if (field3 instanceof ClientId) {
-      return [
-        (() => {
-          let _record = model;
-          return new OAuth2ClientConfig(
-            value4,
-            _record.authorize_url,
-            _record.token_url,
-            _record.redirect_uri,
-            _record.scope
-          );
-        })(),
-        none()
-      ];
+      let _record = model.config;
+      _block = new OAuth2ClientConfig(
+        value4,
+        _record.authorize_url,
+        _record.token_url,
+        _record.redirect_uri,
+        _record.scope
+      );
     } else {
-      return [
-        (() => {
-          let _record = model;
-          return new OAuth2ClientConfig(
-            _record.client_id,
-            _record.authorize_url,
-            _record.token_url,
-            _record.redirect_uri,
-            value4
-          );
-        })(),
-        none()
-      ];
+      let _record = model.config;
+      _block = new OAuth2ClientConfig(
+        _record.client_id,
+        _record.authorize_url,
+        _record.token_url,
+        _record.redirect_uri,
+        value4
+      );
     }
+    let new_config = _block;
+    return [
+      (() => {
+        let _record = model;
+        return new ConfigModel(new_config, _record.errors);
+      })(),
+      none()
+    ];
+  } else if (msg instanceof InvalidValue) {
+    let field3 = msg[0];
+    let value4 = msg[1];
+    let new_errors = insert(model.errors, field3, value4);
+    return [
+      (() => {
+        let _record = model;
+        return new ConfigModel(_record.config, new_errors);
+      })(),
+      none()
+    ];
   } else if (msg instanceof Save) {
-    let $ = save_config_storage(model);
+    let $ = save_config_storage(model.config);
     return [model, back(1)];
   } else {
     return [model, back(1)];
@@ -7779,20 +7870,20 @@ function echo(value4, file, line) {
   const reset_color = "\x1B[39m";
   const file_line = `${file}:${line}`;
   const string_value = echo$inspect(value4);
-  if (typeof process === "object" && process.stderr?.write) {
+  if (globalThis.process?.stderr?.write) {
     const string6 = `${grey}${file_line}${reset_color}
 ${string_value}
 `;
     process.stderr.write(string6);
-  } else if (typeof Deno === "object") {
+  } else if (globalThis.Deno) {
     const string6 = `${grey}${file_line}${reset_color}
 ${string_value}
 `;
-    Deno.stderr.writeSync(new TextEncoder().encode(string6));
+    globalThis.Deno.stderr.writeSync(new TextEncoder().encode(string6));
   } else {
     const string6 = `${file_line}
 ${string_value}`;
-    console.log(string6);
+    globalThis.console.log(string6);
   }
   return value4;
 }
@@ -7838,7 +7929,7 @@ function echo$inspectDict(map9) {
   return body2 + "])";
 }
 function echo$inspectCustomType(record) {
-  const props = Object.keys(record).map((label) => {
+  const props = globalThis.Object.keys(record).map((label) => {
     const value4 = echo$inspect(record[label]);
     return isNaN(parseInt(label)) ? `${label}: ${value4}` : value4;
   }).join(", ");
@@ -7868,7 +7959,7 @@ function echo$inspect(v) {
     return echo$inspectString(v);
   if (t === "bigint" || t === "number")
     return v.toString();
-  if (Array.isArray(v))
+  if (globalThis.Array.isArray(v))
     return `#(${v.map(echo$inspect).join(", ")})`;
   if (v instanceof List)
     return `[${v.toArray().map(echo$inspect).join(", ")}]`;
@@ -7896,10 +7987,20 @@ function echo$inspect(v) {
 }
 function echo$inspectBitArray(bitArray) {
   let endOfAlignedBytes = bitArray.bitOffset + 8 * Math.trunc(bitArray.bitSize / 8);
-  let alignedBytes = bitArraySlice(bitArray, bitArray.bitOffset, endOfAlignedBytes);
+  let alignedBytes = bitArraySlice(
+    bitArray,
+    bitArray.bitOffset,
+    endOfAlignedBytes
+  );
   let remainingUnalignedBits = bitArray.bitSize % 8;
   if (remainingUnalignedBits > 0) {
-    let remainingBits = bitArraySliceToInt(bitArray, endOfAlignedBytes, bitArray.bitSize, false, false);
+    let remainingBits = bitArraySliceToInt(
+      bitArray,
+      endOfAlignedBytes,
+      bitArray.bitSize,
+      false,
+      false
+    );
     let alignedBytesArray = Array.from(alignedBytes.rawBuffer);
     let suffix = `${remainingBits}:size(${remainingUnalignedBits})`;
     if (alignedBytesArray.length === 0) {
@@ -8103,17 +8204,17 @@ function try_get_access_token(code2, config, dispatch) {
               if (token.isOk()) {
                 let token$1 = token[0];
                 echo2(token$1, "src/litebug_gleam.gleam", 195);
-                let $1 = (() => {
-                  let _pipe$12 = token$1;
-                  let _pipe$22 = auth_token_to_json(_pipe$12);
-                  return ((_capture) => {
-                    return setItem(
-                      local_storage,
-                      "auth_token",
-                      _capture
-                    );
-                  })(_pipe$22);
-                })();
+                let _block;
+                let _pipe$12 = token$1;
+                let _pipe$22 = auth_token_to_json(_pipe$12);
+                _block = ((_capture) => {
+                  return setItem(
+                    local_storage,
+                    "auth_token",
+                    _capture
+                  );
+                })(_pipe$22);
+                let $1 = _block;
                 dispatch(new LoggedInSuccessfully(token$1));
                 return new Ok(void 0);
               } else {
@@ -8153,54 +8254,54 @@ function check_auth_code_handle(config) {
   return from(
     (dispatch) => {
       echo2(["location", location()], "src/litebug_gleam.gleam", 152);
-      let a2 = (() => {
-        let _pipe = do_initial_uri();
-        let _pipe$1 = try$(
-          _pipe,
-          (current_uri) => {
-            let $ = current_uri.query;
-            if ($ instanceof Some) {
-              let query = $[0];
-              return parse_query(query);
-            } else {
-              return new Error(void 0);
-            }
+      let _block;
+      let _pipe = do_initial_uri();
+      let _pipe$1 = try$(
+        _pipe,
+        (current_uri) => {
+          let $ = current_uri.query;
+          if ($ instanceof Some) {
+            let query = $[0];
+            return parse_query(query);
+          } else {
+            return new Error(void 0);
           }
-        );
-        let _pipe$2 = map3(_pipe$1, from_list);
-        let _pipe$3 = try$(
-          _pipe$2,
-          (_capture) => {
-            return map_get(_capture, "code");
-          }
-        );
-        echo2(_pipe$3, "src/litebug_gleam.gleam", 163);
-        return map3(
-          _pipe$3,
-          (_capture) => {
-            return try_get_access_token(_capture, config, dispatch);
-          }
-        );
-      })();
+        }
+      );
+      let _pipe$2 = map3(_pipe$1, from_list);
+      let _pipe$3 = try$(
+        _pipe$2,
+        (_capture) => {
+          return map_get(_capture, "code");
+        }
+      );
+      echo2(_pipe$3, "src/litebug_gleam.gleam", 163);
+      _block = map3(
+        _pipe$3,
+        (_capture) => {
+          return try_get_access_token(_capture, config, dispatch);
+        }
+      );
+      let a2 = _block;
       return void 0;
     }
   );
 }
 function init3(_) {
   let config = load_config();
-  let model = (() => {
-    let _pipe = new Model2(new HomePage(), config, new None());
-    return load_token(_pipe);
-  })();
-  let current_route = (() => {
-    let $ = parse2(location());
-    if ($.isOk()) {
-      let curr_uri = $[0];
-      return get_route(curr_uri);
-    } else {
-      return new HomePage();
-    }
-  })();
+  let _block;
+  let _pipe = new Model2(new HomePage(), config, new None());
+  _block = load_token(_pipe);
+  let model = _block;
+  let _block$1;
+  let $ = parse2(location());
+  if ($.isOk()) {
+    let curr_uri = $[0];
+    _block$1 = get_route(curr_uri);
+  } else {
+    _block$1 = new HomePage();
+  }
+  let current_route = _block$1;
   return [
     (() => {
       let _record = model;
@@ -8221,14 +8322,14 @@ function init3(_) {
         })(),
         init2(on_url_change),
         (() => {
-          let $ = model.token_response;
-          if ($ instanceof Some) {
+          let $1 = model.token_response;
+          if ($1 instanceof Some) {
             return init_route(current_route);
-          } else if ($ instanceof None && current_route instanceof HandleOauthPage) {
+          } else if ($1 instanceof None && current_route instanceof HandleOauthPage) {
             return init_route(current_route);
-          } else if ($ instanceof None && current_route instanceof ConfigPage) {
+          } else if ($1 instanceof None && current_route instanceof ConfigPage) {
             return init_route(current_route);
-          } else if ($ instanceof None && current_route instanceof LoginPage) {
+          } else if ($1 instanceof None && current_route instanceof LoginPage) {
             return init_route(current_route);
           } else {
             return replace2("/login", new None(), new None());
@@ -8245,19 +8346,19 @@ function login(config) {
       map_try(
         _pipe,
         (authorize_url) => {
-          let $ = (() => {
-            let _pipe$1 = localStorage();
-            return map3(
-              _pipe$1,
-              (_capture) => {
-                return setItem(
-                  _capture,
-                  "glebs_verifier",
-                  authorize_url[1]
-                );
-              }
-            );
-          })();
+          let _block;
+          let _pipe$1 = localStorage();
+          _block = map3(
+            _pipe$1,
+            (_capture) => {
+              return setItem(
+                _capture,
+                "glebs_verifier",
+                authorize_url[1]
+              );
+            }
+          );
+          let $ = _block;
           echo2(authorize_url, "src/litebug_gleam.gleam", 239);
           let curr_window = self();
           setLocation(curr_window, to_string3(authorize_url[0]));
@@ -8271,15 +8372,15 @@ function login(config) {
 function logout() {
   return from(
     (dispatch) => {
-      let $ = (() => {
-        let _pipe = localStorage();
-        return map3(
-          _pipe,
-          (_capture) => {
-            return removeItem(_capture, "auth_token");
-          }
-        );
-      })();
+      let _block;
+      let _pipe = localStorage();
+      _block = map3(
+        _pipe,
+        (_capture) => {
+          return removeItem(_capture, "auth_token");
+        }
+      );
+      let $ = _block;
       dispatch(new LoggedOut());
       return void 0;
     }
@@ -8287,12 +8388,13 @@ function logout() {
 }
 function handle_route_change(model, route) {
   if (route instanceof ConfigPage) {
-    let config_model = route[0];
     return [
       (() => {
         let _record = model;
         return new Model2(
-          new ConfigPage(model.oauth_config),
+          new ConfigPage(
+            new ConfigModel(model.oauth_config, new_map())
+          ),
           _record.oauth_config,
           _record.token_response
         );
@@ -8303,7 +8405,7 @@ function handle_route_change(model, route) {
     return [model, none()];
   }
 }
-function update_with(update_resp, model, to_model, to_msg) {
+function update_with(update_resp, model, to_model, to_msg2) {
   let sub_model = update_resp[0];
   let effect = update_resp[1];
   return [
@@ -8315,7 +8417,7 @@ function update_with(update_resp, model, to_model, to_msg) {
         _record.token_response
       );
     })(),
-    map6(effect, to_msg)
+    map6(effect, to_msg2)
   ];
 }
 function update2(model, msg) {
@@ -8333,7 +8435,7 @@ function update2(model, msg) {
     return [model, login(model.oauth_config)];
   } else if (msg instanceof LoggedInSuccessfully) {
     let token = msg[0];
-    echo2("Logged in successfully", "src/litebug_gleam.gleam", 282);
+    echo2("Logged in successfully", "src/litebug_gleam.gleam", 288);
     return [
       (() => {
         let _record = model;
@@ -8357,34 +8459,34 @@ function update2(model, msg) {
     let $1 = update(config_model, msg$1);
     let new_config_model = $1[0];
     let config_effect = $1[1];
-    let $2 = (() => {
-      let _pipe = [new_config_model, config_effect];
-      return update_with(
-        _pipe,
-        model,
-        (var0) => {
-          return new ConfigPage(var0);
-        },
-        (var0) => {
-          return new ConfigPageMsg(var0);
-        }
-      );
-    })();
+    let _block;
+    let _pipe = [new_config_model, config_effect];
+    _block = update_with(
+      _pipe,
+      model,
+      (var0) => {
+        return new ConfigPage(var0);
+      },
+      (var0) => {
+        return new ConfigPageMsg(var0);
+      }
+    );
+    let $2 = _block;
     let new_model = $2[0];
     let effect = $2[1];
     if (msg$1 instanceof Save) {
-      let _pipe = [
+      let _pipe$1 = [
         (() => {
           let _record = new_model;
           return new Model2(
             _record.route,
-            new_config_model,
+            new_config_model.config,
             _record.token_response
           );
         })(),
         effect
       ];
-      return echo2(_pipe, "src/litebug_gleam.gleam", 307);
+      return echo2(_pipe$1, "src/litebug_gleam.gleam", 313);
     } else {
       return [new_model, effect];
     }
@@ -8578,20 +8680,20 @@ function echo2(value4, file, line) {
   const reset_color = "\x1B[39m";
   const file_line = `${file}:${line}`;
   const string_value = echo$inspect2(value4);
-  if (typeof process === "object" && process.stderr?.write) {
+  if (globalThis.process?.stderr?.write) {
     const string6 = `${grey}${file_line}${reset_color}
 ${string_value}
 `;
     process.stderr.write(string6);
-  } else if (typeof Deno === "object") {
+  } else if (globalThis.Deno) {
     const string6 = `${grey}${file_line}${reset_color}
 ${string_value}
 `;
-    Deno.stderr.writeSync(new TextEncoder().encode(string6));
+    globalThis.Deno.stderr.writeSync(new TextEncoder().encode(string6));
   } else {
     const string6 = `${file_line}
 ${string_value}`;
-    console.log(string6);
+    globalThis.console.log(string6);
   }
   return value4;
 }
@@ -8637,7 +8739,7 @@ function echo$inspectDict2(map9) {
   return body2 + "])";
 }
 function echo$inspectCustomType2(record) {
-  const props = Object.keys(record).map((label) => {
+  const props = globalThis.Object.keys(record).map((label) => {
     const value4 = echo$inspect2(record[label]);
     return isNaN(parseInt(label)) ? `${label}: ${value4}` : value4;
   }).join(", ");
@@ -8667,7 +8769,7 @@ function echo$inspect2(v) {
     return echo$inspectString2(v);
   if (t === "bigint" || t === "number")
     return v.toString();
-  if (Array.isArray(v))
+  if (globalThis.Array.isArray(v))
     return `#(${v.map(echo$inspect2).join(", ")})`;
   if (v instanceof List)
     return `[${v.toArray().map(echo$inspect2).join(", ")}]`;
@@ -8695,10 +8797,20 @@ function echo$inspect2(v) {
 }
 function echo$inspectBitArray2(bitArray) {
   let endOfAlignedBytes = bitArray.bitOffset + 8 * Math.trunc(bitArray.bitSize / 8);
-  let alignedBytes = bitArraySlice(bitArray, bitArray.bitOffset, endOfAlignedBytes);
+  let alignedBytes = bitArraySlice(
+    bitArray,
+    bitArray.bitOffset,
+    endOfAlignedBytes
+  );
   let remainingUnalignedBits = bitArray.bitSize % 8;
   if (remainingUnalignedBits > 0) {
-    let remainingBits = bitArraySliceToInt(bitArray, endOfAlignedBytes, bitArray.bitSize, false, false);
+    let remainingBits = bitArraySliceToInt(
+      bitArray,
+      endOfAlignedBytes,
+      bitArray.bitSize,
+      false,
+      false
+    );
     let alignedBytesArray = Array.from(alignedBytes.rawBuffer);
     let suffix = `${remainingBits}:size(${remainingUnalignedBits})`;
     if (alignedBytesArray.length === 0) {

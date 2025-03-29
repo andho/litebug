@@ -263,8 +263,14 @@ pub fn handle_route_change(
   route: Route,
 ) -> #(Model, effect.Effect(Msg)) {
   case route {
-    ConfigPage(config_model) -> #(
-      Model(..model, route: ConfigPage(model.oauth_config)),
+    ConfigPage(_) -> #(
+      Model(
+        ..model,
+        route: ConfigPage(config_page.ConfigModel(
+          config: model.oauth_config,
+          errors: dict.new(),
+        )),
+      ),
       effect.none(),
     )
     _ -> #(model, effect.none())
@@ -303,7 +309,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
 
       case msg {
         config_page.Save ->
-          #(Model(..new_model, oauth_config: new_config_model), effect)
+          #(Model(..new_model, oauth_config: new_config_model.config), effect)
           |> echo
         _ -> #(new_model, effect)
       }

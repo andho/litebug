@@ -6,6 +6,8 @@ pub type ThemeColor {
   Text
   TextSoft
   TextSofter
+  TextError
+  TextSuccess
   Accent
   ButtonBgPrimary
   ButtonBgSecondary
@@ -33,6 +35,8 @@ pub fn color(theme_color: ThemeColor) -> String {
       Text -> nord.color(nord.Nord4)
       TextSoft -> nord.color(nord.Nord5)
       TextSofter -> nord.color(nord.Nord6)
+      TextError -> nord.color(nord.Nord11)
+      TextSuccess -> nord.color(nord.Nord12)
       Accent -> nord.color(nord.Nord10)
       ButtonBgPrimary -> nord.color(nord.Nord10)
       ButtonBgSecondary -> nord.color(nord.Nord4)

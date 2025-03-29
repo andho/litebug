@@ -15,7 +15,7 @@ pub type Route {
   LoginPage
   HandleOauthPage
   LogoutPage
-  ConfigPage(glebs.OAuth2ClientConfig)
+  ConfigPage(config_page.ConfigModel)
 }
 
 pub type Msg {
