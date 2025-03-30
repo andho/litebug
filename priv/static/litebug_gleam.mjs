@@ -874,6 +874,14 @@ function map(option, fun) {
     return new None();
   }
 }
+function flatten(option) {
+  if (option instanceof Some) {
+    let x = option[0];
+    return x;
+  } else {
+    return new None();
+  }
+}
 
 // build/dev/javascript/gleam_stdlib/dict.mjs
 var referenceMap = /* @__PURE__ */ new WeakMap();
@@ -2170,6 +2178,35 @@ function values(dict2) {
   let list_of_pairs = map_to_list(dict2);
   return do_values_loop(list_of_pairs, toList([]));
 }
+function fold_loop(loop$list, loop$initial, loop$fun) {
+  while (true) {
+    let list2 = loop$list;
+    let initial = loop$initial;
+    let fun = loop$fun;
+    if (list2.hasLength(0)) {
+      return initial;
+    } else {
+      let k = list2.head[0];
+      let v = list2.head[1];
+      let rest = list2.tail;
+      loop$list = rest;
+      loop$initial = fun(initial, k, v);
+      loop$fun = fun;
+    }
+  }
+}
+function fold(dict2, initial, fun) {
+  return fold_loop(map_to_list(dict2), initial, fun);
+}
+function do_map_values(f, dict2) {
+  let f$1 = (dict3, k, v) => {
+    return insert(dict3, k, f(k, v));
+  };
+  return fold(dict2, new_map(), f$1);
+}
+function map_values(dict2, fun) {
+  return do_map_values(fun, dict2);
+}
 
 // build/dev/javascript/gleam_stdlib/gleam/pair.mjs
 function first(pair) {
@@ -2263,14 +2300,14 @@ function flatten_loop(loop$lists, loop$acc) {
     }
   }
 }
-function flatten(lists) {
+function flatten2(lists) {
   return flatten_loop(lists, toList([]));
 }
 function flat_map(list2, fun) {
   let _pipe = map2(list2, fun);
-  return flatten(_pipe);
+  return flatten2(_pipe);
 }
-function fold(loop$list, loop$initial, loop$fun) {
+function fold2(loop$list, loop$initial, loop$fun) {
   while (true) {
     let list2 = loop$list;
     let initial = loop$initial;
@@ -2447,6 +2484,14 @@ function unwrap2(result, default$) {
     return v;
   } else {
     return default$;
+  }
+}
+function unwrap_error(result, default$) {
+  if (result.isOk()) {
+    return default$;
+  } else {
+    let e = result[0];
+    return e;
   }
 }
 function replace_error(result, error) {
@@ -4397,7 +4442,7 @@ function none() {
 }
 function batch(effects) {
   return new Effect(
-    fold(
+    fold2(
       effects,
       toList([]),
       (b, _use1) => {
@@ -4506,7 +4551,7 @@ function do_handlers(loop$element, loop$handlers, loop$key) {
     } else {
       let attrs = element3.attrs;
       let children2 = element3.children;
-      let handlers$1 = fold(
+      let handlers$1 = fold2(
         attrs,
         handlers2,
         (handlers3, attr) => {
@@ -4552,7 +4597,7 @@ function map7(attr, f) {
 function style(properties) {
   return attribute(
     "style",
-    fold(
+    fold2(
       properties,
       "",
       (styles, _use1) => {
@@ -6029,7 +6074,7 @@ function compute_classes(id, name, properties) {
           let _pipe$1 = ((_capture) => {
             return prepend2(toList([selectors$3, toList(["}"])]), _capture);
           })(_pipe);
-          let _pipe$2 = flatten(_pipe$1);
+          let _pipe$2 = flatten2(_pipe$1);
           return join(_pipe$2, "\n");
         }
       ),
@@ -6087,7 +6132,7 @@ function get_definitions(class$5) {
   let selectors = $.selectors;
   let class$1 = $.class;
   let _pipe = toList([toList([class$1]), selectors, medias]);
-  return flatten(_pipe);
+  return flatten2(_pipe);
 }
 function render_sheet(cache) {
   let _pipe = values(cache.at_rules);
@@ -6144,7 +6189,7 @@ function handle_combinator(cache, props, combinator, existing_selector) {
 }
 function compute_properties(cache, properties, indentation, existing_selector) {
   let init4 = new Properties(toList([]), toList([]), toList([]), indentation);
-  return fold(
+  return fold2(
     reverse(properties),
     [cache, init4],
     (_use0, p) => {
@@ -6644,6 +6689,9 @@ function height(height2) {
 function justify_content(justify) {
   return property("justify-content", justify);
 }
+function margin_top(margin) {
+  return property("margin-top", to_string4(margin));
+}
 function padding(padding2) {
   return property("padding", to_string4(padding2));
 }
@@ -6757,7 +6805,7 @@ function element2(tag, class$5, attributes, children2) {
   return new Element3("", "", tag, class$1, attributes, children2);
 }
 function unstyled_children(stylesheet2, children2) {
-  return fold(
+  return fold2(
     reverse(children2),
     [stylesheet2, toList([])],
     (acc, child) => {
@@ -6877,7 +6925,7 @@ function render2(stylesheet2, outputs, view2) {
   let new_view$1 = $[1];
   let content = render(st);
   set(stylesheet$1, st);
-  return fold(
+  return fold2(
     outputs,
     new_view$1,
     (view3, stylesheet3) => {
@@ -7449,7 +7497,6 @@ function link_button(label, variant, href2) {
 // build/dev/javascript/litebug_gleam/components/text_input.mjs
 function text_input(label, value4, on_change, error) {
   let text_color = color3(new Text3());
-  let class$5 = class$4(toList([]));
   return div(
     class$4(
       toList([
@@ -7490,7 +7537,7 @@ function text_input(label, value4, on_change, error) {
               toList([
                 color(color3(new TextError())),
                 font_size(px(12)),
-                padding_left(px(12))
+                margin_top(px(4))
               ])
             ),
             toList([]),
@@ -7504,38 +7551,91 @@ function text_input(label, value4, on_change, error) {
   );
 }
 
-// build/dev/javascript/litebug_gleam/filter.mjs
-function required(next) {
-  return (val) => {
-    if (val.isOk()) {
-      let val$1 = val[0];
-      if (val$1 === "") {
-        return new Error("Field is required");
-      } else {
-        return next(new Ok(val$1));
-      }
-    } else {
-      let err = val[0];
-      return new Error(err);
-    }
-  };
-}
-function to_msg(fun) {
-  return (_capture) => {
-    return map3(_capture, fun);
-  };
-}
-function process2(next, error_fn) {
-  return (val) => {
-    let $ = next(new Ok(val));
+// build/dev/javascript/litebug_gleam/form.mjs
+var OnChange = class extends CustomType {
+  constructor(x0, x1) {
+    super();
+    this[0] = x0;
+    this[1] = x1;
+  }
+};
+var InputField = class extends CustomType {
+  constructor(field3, value4, validate, error) {
+    super();
+    this.field = field3;
+    this.value = value4;
+    this.validate = validate;
+    this.error = error;
+  }
+};
+var Form = class extends CustomType {
+  constructor(fields) {
+    super();
+    this.fields = fields;
+  }
+};
+function handle_form_event(form, event2) {
+  {
+    let field3 = event2[0];
+    let value4 = event2[1];
+    let $ = map_get(form.fields, field3);
     if ($.isOk()) {
-      let val$1 = $[0];
-      return val$1;
+      let input_field = $[0];
+      let _block;
+      let _pipe = input_field.validate(value4);
+      let _pipe$1 = map_error(
+        _pipe,
+        (var0) => {
+          return new Some(var0);
+        }
+      );
+      _block = unwrap_error(_pipe$1, new None());
+      let error = _block;
+      let _block$1;
+      let _record = input_field;
+      _block$1 = new InputField(_record.field, value4, _record.validate, error);
+      let new_input_field = _block$1;
+      return new Form(insert(form.fields, field3, new_input_field));
     } else {
-      let err = $[0];
-      return error_fn(err);
+      return form;
     }
-  };
+  }
+}
+function field_value(form, field3) {
+  let _pipe = map_get(form.fields, field3);
+  let _pipe$1 = map3(
+    _pipe,
+    (input_field) => {
+      return input_field.value;
+    }
+  );
+  return unwrap2(_pipe$1, "");
+}
+function field_error(form, field3) {
+  let _pipe = map_get(form.fields, field3);
+  let _pipe$1 = map3(
+    _pipe,
+    (input_field) => {
+      return input_field.error;
+    }
+  );
+  let _pipe$2 = from_result(_pipe$1);
+  return flatten(_pipe$2);
+}
+function handle_on_change(msg, field3) {
+  return on_input((val) => {
+    return msg(new OnChange(field3, val));
+  });
+}
+function init_field(field3, validate) {
+  return [field3, new InputField(field3, "", validate, new None())];
+}
+function required(val) {
+  if (val === "") {
+    return new Error("Field is required");
+  } else {
+    return new Ok(val);
+  }
 }
 
 // build/dev/javascript/litebug_gleam/style.mjs
@@ -7545,24 +7645,17 @@ function text_body() {
 
 // build/dev/javascript/litebug_gleam/pages/config_page.mjs
 var ConfigModel = class extends CustomType {
-  constructor(config, errors) {
+  constructor(config, errors, form) {
     super();
     this.config = config;
     this.errors = errors;
+    this.form = form;
   }
 };
-var ConfigFieldChanged = class extends CustomType {
-  constructor(x0, x1) {
+var FormEvent = class extends CustomType {
+  constructor(x0) {
     super();
     this[0] = x0;
-    this[1] = x1;
-  }
-};
-var InvalidValue = class extends CustomType {
-  constructor(x0, x1) {
-    super();
-    this[0] = x0;
-    this[1] = x1;
   }
 };
 var Save = class extends CustomType {
@@ -7579,10 +7672,58 @@ var ClientId = class extends CustomType {
 };
 var Scope = class extends CustomType {
 };
+function default_config() {
+  return new OAuth2ClientConfig("", "", "", "", "");
+}
 function default_model() {
   return new ConfigModel(
     new OAuth2ClientConfig("", "", "", "", ""),
-    new_map()
+    new_map(),
+    new Form(
+      from_list(
+        toList([
+          init_field(new AuthorizeUrl(), required),
+          init_field(new TokenUrl(), required),
+          init_field(new RedirectUri(), required),
+          init_field(new ClientId(), required),
+          init_field(new Scope(), required)
+        ])
+      )
+    )
+  );
+}
+function init_from_config(config) {
+  let defaults2 = default_model();
+  let get_config_value = (field3) => {
+    if (field3 instanceof AuthorizeUrl) {
+      return config.authorize_url;
+    } else if (field3 instanceof TokenUrl) {
+      return config.token_url;
+    } else if (field3 instanceof RedirectUri) {
+      return config.redirect_uri;
+    } else if (field3 instanceof ClientId) {
+      return config.client_id;
+    } else {
+      return config.scope;
+    }
+  };
+  return new ConfigModel(
+    config,
+    new_map(),
+    new Form(
+      map_values(
+        defaults2.form.fields,
+        (field3, input_field) => {
+          let _record = input_field;
+          return new InputField(
+            _record.field,
+            get_config_value(field3),
+            _record.validate,
+            _record.error
+          );
+        }
+      )
+    )
   );
 }
 function config_view(model, stylesheet2) {
@@ -7591,20 +7732,6 @@ function config_view(model, stylesheet2) {
     stylesheet2,
     toList([node()]),
     () => {
-      let _block;
-      let _pipe = to_msg(
-        (a3) => {
-          return new ConfigFieldChanged(new AuthorizeUrl(), a3);
-        }
-      );
-      let _pipe$1 = required(_pipe);
-      _block = process2(
-        _pipe$1,
-        (err) => {
-          return new InvalidValue(new AuthorizeUrl(), err);
-        }
-      );
-      let a2 = _block;
       return div(
         class$4(
           toList([
@@ -7646,49 +7773,58 @@ function config_view(model, stylesheet2) {
             toList([
               text_input(
                 "Authorize URL",
-                config.authorize_url,
-                on_input(a2),
-                from_result(map_get(model.errors, new AuthorizeUrl()))
+                field_value(model.form, new AuthorizeUrl()),
+                handle_on_change(
+                  (var0) => {
+                    return new FormEvent(var0);
+                  },
+                  new AuthorizeUrl()
+                ),
+                field_error(model.form, new AuthorizeUrl())
               ),
               text_input(
                 "Token URL",
-                config.token_url,
-                on_input(
-                  (_capture) => {
-                    return new ConfigFieldChanged(new TokenUrl(), _capture);
-                  }
+                field_value(model.form, new TokenUrl()),
+                handle_on_change(
+                  (var0) => {
+                    return new FormEvent(var0);
+                  },
+                  new TokenUrl()
                 ),
-                new None()
+                field_error(model.form, new TokenUrl())
               ),
               text_input(
                 "Redirect URI",
-                config.redirect_uri,
-                on_input(
-                  (_capture) => {
-                    return new ConfigFieldChanged(new RedirectUri(), _capture);
-                  }
+                field_value(model.form, new RedirectUri()),
+                handle_on_change(
+                  (var0) => {
+                    return new FormEvent(var0);
+                  },
+                  new RedirectUri()
                 ),
-                new None()
+                field_error(model.form, new RedirectUri())
               ),
               text_input(
                 "Client ID",
-                config.client_id,
-                on_input(
-                  (_capture) => {
-                    return new ConfigFieldChanged(new ClientId(), _capture);
-                  }
+                field_value(model.form, new ClientId()),
+                handle_on_change(
+                  (var0) => {
+                    return new FormEvent(var0);
+                  },
+                  new ClientId()
                 ),
-                new None()
+                field_error(model.form, new ClientId())
               ),
               text_input(
                 "Scope",
-                config.scope,
-                on_input(
-                  (_capture) => {
-                    return new ConfigFieldChanged(new Scope(), _capture);
-                  }
+                field_value(model.form, new Scope()),
+                handle_on_change(
+                  (var0) => {
+                    return new FormEvent(var0);
+                  },
+                  new Scope()
                 ),
-                from_result(map_get(model.errors, new Scope()))
+                field_error(model.form, new Scope())
               )
             ])
           ),
@@ -7786,237 +7922,84 @@ function save_config_storage(config) {
     }
   );
   let $ = _block;
-  return echo("Saved config", "src/pages/config_page.gleam", 181);
+  return $;
 }
 function update(model, msg) {
-  if (msg instanceof ConfigFieldChanged) {
-    let field3 = msg[0];
-    let value4 = msg[1];
-    let _block;
-    if (field3 instanceof AuthorizeUrl) {
-      let _record = model.config;
-      _block = new OAuth2ClientConfig(
-        _record.client_id,
-        value4,
-        _record.token_url,
-        _record.redirect_uri,
-        _record.scope
-      );
-    } else if (field3 instanceof TokenUrl) {
-      let _record = model.config;
-      _block = new OAuth2ClientConfig(
-        _record.client_id,
-        _record.authorize_url,
-        value4,
-        _record.redirect_uri,
-        _record.scope
-      );
-    } else if (field3 instanceof RedirectUri) {
-      let _record = model.config;
-      _block = new OAuth2ClientConfig(
-        _record.client_id,
-        _record.authorize_url,
-        _record.token_url,
-        value4,
-        _record.scope
-      );
-    } else if (field3 instanceof ClientId) {
-      let _record = model.config;
-      _block = new OAuth2ClientConfig(
-        value4,
-        _record.authorize_url,
-        _record.token_url,
-        _record.redirect_uri,
-        _record.scope
-      );
-    } else {
-      let _record = model.config;
-      _block = new OAuth2ClientConfig(
-        _record.client_id,
-        _record.authorize_url,
-        _record.token_url,
-        _record.redirect_uri,
-        value4
-      );
-    }
-    let new_config = _block;
+  if (msg instanceof FormEvent && msg[0] instanceof OnChange) {
+    let field3 = msg[0][0];
+    let value4 = msg[0][1];
+    let new_form = handle_form_event(
+      model.form,
+      new OnChange(field3, value4)
+    );
     return [
       (() => {
         let _record = model;
-        return new ConfigModel(new_config, _record.errors);
-      })(),
-      none()
-    ];
-  } else if (msg instanceof InvalidValue) {
-    let field3 = msg[0];
-    let value4 = msg[1];
-    let new_errors = insert(model.errors, field3, value4);
-    return [
-      (() => {
-        let _record = model;
-        return new ConfigModel(_record.config, new_errors);
+        return new ConfigModel(_record.config, _record.errors, new_form);
       })(),
       none()
     ];
   } else if (msg instanceof Save) {
-    let $ = save_config_storage(model.config);
-    return [model, back(1)];
-  } else {
-    return [model, back(1)];
-  }
-}
-function echo(value4, file, line) {
-  const grey = "\x1B[90m";
-  const reset_color = "\x1B[39m";
-  const file_line = `${file}:${line}`;
-  const string_value = echo$inspect(value4);
-  if (globalThis.process?.stderr?.write) {
-    const string6 = `${grey}${file_line}${reset_color}
-${string_value}
-`;
-    process.stderr.write(string6);
-  } else if (globalThis.Deno) {
-    const string6 = `${grey}${file_line}${reset_color}
-${string_value}
-`;
-    globalThis.Deno.stderr.writeSync(new TextEncoder().encode(string6));
-  } else {
-    const string6 = `${file_line}
-${string_value}`;
-    globalThis.console.log(string6);
-  }
-  return value4;
-}
-function echo$inspectString(str) {
-  let new_str = '"';
-  for (let i = 0; i < str.length; i++) {
-    let char = str[i];
-    if (char == "\n")
-      new_str += "\\n";
-    else if (char == "\r")
-      new_str += "\\r";
-    else if (char == "	")
-      new_str += "\\t";
-    else if (char == "\f")
-      new_str += "\\f";
-    else if (char == "\\")
-      new_str += "\\\\";
-    else if (char == '"')
-      new_str += '\\"';
-    else if (char < " " || char > "~" && char < "\xA0") {
-      new_str += "\\u{" + char.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0") + "}";
-    } else {
-      new_str += char;
-    }
-  }
-  new_str += '"';
-  return new_str;
-}
-function echo$inspectDict(map9) {
-  let body2 = "dict.from_list([";
-  let first3 = true;
-  let key_value_pairs = [];
-  map9.forEach((value4, key3) => {
-    key_value_pairs.push([key3, value4]);
-  });
-  key_value_pairs.sort();
-  key_value_pairs.forEach(([key3, value4]) => {
-    if (!first3)
-      body2 = body2 + ", ";
-    body2 = body2 + "#(" + echo$inspect(key3) + ", " + echo$inspect(value4) + ")";
-    first3 = false;
-  });
-  return body2 + "])";
-}
-function echo$inspectCustomType(record) {
-  const props = globalThis.Object.keys(record).map((label) => {
-    const value4 = echo$inspect(record[label]);
-    return isNaN(parseInt(label)) ? `${label}: ${value4}` : value4;
-  }).join(", ");
-  return props ? `${record.constructor.name}(${props})` : record.constructor.name;
-}
-function echo$inspectObject(v) {
-  const name = Object.getPrototypeOf(v)?.constructor?.name || "Object";
-  const props = [];
-  for (const k of Object.keys(v)) {
-    props.push(`${echo$inspect(k)}: ${echo$inspect(v[k])}`);
-  }
-  const body2 = props.length ? " " + props.join(", ") + " " : "";
-  const head = name === "Object" ? "" : name + " ";
-  return `//js(${head}{${body2}})`;
-}
-function echo$inspect(v) {
-  const t = typeof v;
-  if (v === true)
-    return "True";
-  if (v === false)
-    return "False";
-  if (v === null)
-    return "//js(null)";
-  if (v === void 0)
-    return "Nil";
-  if (t === "string")
-    return echo$inspectString(v);
-  if (t === "bigint" || t === "number")
-    return v.toString();
-  if (globalThis.Array.isArray(v))
-    return `#(${v.map(echo$inspect).join(", ")})`;
-  if (v instanceof List)
-    return `[${v.toArray().map(echo$inspect).join(", ")}]`;
-  if (v instanceof UtfCodepoint)
-    return `//utfcodepoint(${String.fromCodePoint(v.value)})`;
-  if (v instanceof BitArray)
-    return echo$inspectBitArray(v);
-  if (v instanceof CustomType)
-    return echo$inspectCustomType(v);
-  if (echo$isDict(v))
-    return echo$inspectDict(v);
-  if (v instanceof Set)
-    return `//js(Set(${[...v].map(echo$inspect).join(", ")}))`;
-  if (v instanceof RegExp)
-    return `//js(${v})`;
-  if (v instanceof Date)
-    return `//js(Date("${v.toISOString()}"))`;
-  if (v instanceof Function) {
-    const args = [];
-    for (const i of Array(v.length).keys())
-      args.push(String.fromCharCode(i + 97));
-    return `//fn(${args.join(", ")}) { ... }`;
-  }
-  return echo$inspectObject(v);
-}
-function echo$inspectBitArray(bitArray) {
-  let endOfAlignedBytes = bitArray.bitOffset + 8 * Math.trunc(bitArray.bitSize / 8);
-  let alignedBytes = bitArraySlice(
-    bitArray,
-    bitArray.bitOffset,
-    endOfAlignedBytes
-  );
-  let remainingUnalignedBits = bitArray.bitSize % 8;
-  if (remainingUnalignedBits > 0) {
-    let remainingBits = bitArraySliceToInt(
-      bitArray,
-      endOfAlignedBytes,
-      bitArray.bitSize,
-      false,
-      false
+    let config = fold(
+      model.form.fields,
+      model.config,
+      (conf, field3, input_field) => {
+        if (field3 instanceof AuthorizeUrl) {
+          let _record2 = conf;
+          return new OAuth2ClientConfig(
+            _record2.client_id,
+            input_field.value,
+            _record2.token_url,
+            _record2.redirect_uri,
+            _record2.scope
+          );
+        } else if (field3 instanceof TokenUrl) {
+          let _record2 = conf;
+          return new OAuth2ClientConfig(
+            _record2.client_id,
+            _record2.authorize_url,
+            input_field.value,
+            _record2.redirect_uri,
+            _record2.scope
+          );
+        } else if (field3 instanceof RedirectUri) {
+          let _record2 = conf;
+          return new OAuth2ClientConfig(
+            _record2.client_id,
+            _record2.authorize_url,
+            _record2.token_url,
+            input_field.value,
+            _record2.scope
+          );
+        } else if (field3 instanceof ClientId) {
+          let _record2 = conf;
+          return new OAuth2ClientConfig(
+            input_field.value,
+            _record2.authorize_url,
+            _record2.token_url,
+            _record2.redirect_uri,
+            _record2.scope
+          );
+        } else {
+          let _record2 = conf;
+          return new OAuth2ClientConfig(
+            _record2.client_id,
+            _record2.authorize_url,
+            _record2.token_url,
+            _record2.redirect_uri,
+            input_field.value
+          );
+        }
+      }
     );
-    let alignedBytesArray = Array.from(alignedBytes.rawBuffer);
-    let suffix = `${remainingBits}:size(${remainingUnalignedBits})`;
-    if (alignedBytesArray.length === 0) {
-      return `<<${suffix}>>`;
-    } else {
-      return `<<${Array.from(alignedBytes.rawBuffer).join(", ")}, ${suffix}>>`;
-    }
+    let _block;
+    let _record = model;
+    _block = new ConfigModel(config, _record.errors, _record.form);
+    let new_model = _block;
+    let $ = save_config_storage(config);
+    return [new_model, back(1)];
   } else {
-    return `<<${Array.from(alignedBytes.rawBuffer).join(", ")}>>`;
-  }
-}
-function echo$isDict(value4) {
-  try {
-    return value4 instanceof Dict;
-  } catch {
-    return false;
+    return [model, back(1)];
   }
 }
 
@@ -8088,7 +8071,9 @@ function get_route(uri) {
   } else if ($.hasLength(1) && $.head === "logout") {
     return new LogoutPage();
   } else if ($.hasLength(1) && $.head === "config") {
-    return new ConfigPage(default_model());
+    return new ConfigPage(
+      init_from_config(default_config())
+    );
   } else {
     return new HomePage();
   }
@@ -8104,8 +8089,6 @@ function load_config() {
       return try$(
         getItem(local_storage, "glebs_config"),
         (config) => {
-          echo2("Loaded config", "src/litebug_gleam.gleam", 105);
-          echo2(config, "src/litebug_gleam.gleam", 106);
           return try$(
             (() => {
               let _pipe2 = parse(
@@ -8115,13 +8098,12 @@ function load_config() {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo2(error, "src/litebug_gleam.gleam", 110);
+                  echo(error, "src/litebug_gleam.gleam", 108);
                   return void 0;
                 }
               );
             })(),
             (config2) => {
-              echo2("Dispatching", "src/litebug_gleam.gleam", 114);
               return new Ok(config2);
             }
           );
@@ -8142,8 +8124,6 @@ function load_token(model) {
       return try$(
         getItem(local_storage, "auth_token"),
         (token) => {
-          echo2("Loaded token", "src/litebug_gleam.gleam", 133);
-          echo2(token, "src/litebug_gleam.gleam", 134);
           return try$(
             (() => {
               let _pipe2 = parse(
@@ -8153,13 +8133,12 @@ function load_token(model) {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo2(error, "src/litebug_gleam.gleam", 138);
+                  echo(error, "src/litebug_gleam.gleam", 133);
                   return void 0;
                 }
               );
             })(),
             (token2) => {
-              echo2("Dispatching", "src/litebug_gleam.gleam", 142);
               return new Ok(
                 (() => {
                   let _record = model;
@@ -8190,7 +8169,6 @@ function auth_token_to_json(token) {
   return to_string2(_pipe);
 }
 function try_get_access_token(code2, config, dispatch) {
-  echo2("Trying to get access token", "src/litebug_gleam.gleam", 185);
   let $ = try$(
     localStorage(),
     (local_storage) => {
@@ -8203,7 +8181,6 @@ function try_get_access_token(code2, config, dispatch) {
             (token) => {
               if (token.isOk()) {
                 let token$1 = token[0];
-                echo2(token$1, "src/litebug_gleam.gleam", 195);
                 let _block;
                 let _pipe$12 = token$1;
                 let _pipe$22 = auth_token_to_json(_pipe$12);
@@ -8219,7 +8196,7 @@ function try_get_access_token(code2, config, dispatch) {
                 return new Ok(void 0);
               } else {
                 let error = token[0];
-                echo2(error, "src/litebug_gleam.gleam", 206);
+                echo(error, "src/litebug_gleam.gleam", 195);
                 return new Ok(void 0);
               }
             }
@@ -8227,7 +8204,7 @@ function try_get_access_token(code2, config, dispatch) {
           let _pipe$2 = rescue(
             _pipe$1,
             (_) => {
-              echo2("Error getting access token", "src/litebug_gleam.gleam", 212);
+              echo("Error getting access token", "src/litebug_gleam.gleam", 201);
               return new Ok(void 0);
             }
           );
@@ -8236,7 +8213,7 @@ function try_get_access_token(code2, config, dispatch) {
             (res) => {
               if (!res.isOk()) {
                 let e = res[0];
-                echo2(e, "src/litebug_gleam.gleam", 218);
+                echo(e, "src/litebug_gleam.gleam", 207);
                 return void 0;
               } else {
                 return void 0;
@@ -8253,15 +8230,14 @@ function try_get_access_token(code2, config, dispatch) {
 function check_auth_code_handle(config) {
   return from(
     (dispatch) => {
-      echo2(["location", location()], "src/litebug_gleam.gleam", 152);
       let _block;
       let _pipe = do_initial_uri();
       let _pipe$1 = try$(
         _pipe,
         (current_uri) => {
-          let $ = current_uri.query;
-          if ($ instanceof Some) {
-            let query = $[0];
+          let $1 = current_uri.query;
+          if ($1 instanceof Some) {
+            let query = $1[0];
             return parse_query(query);
           } else {
             return new Error(void 0);
@@ -8275,14 +8251,13 @@ function check_auth_code_handle(config) {
           return map_get(_capture, "code");
         }
       );
-      echo2(_pipe$3, "src/litebug_gleam.gleam", 163);
       _block = map3(
         _pipe$3,
         (_capture) => {
           return try_get_access_token(_capture, config, dispatch);
         }
       );
-      let a2 = _block;
+      let $ = _block;
       return void 0;
     }
   );
@@ -8359,7 +8334,6 @@ function login(config) {
             }
           );
           let $ = _block;
-          echo2(authorize_url, "src/litebug_gleam.gleam", 239);
           let curr_window = self();
           setLocation(curr_window, to_string3(authorize_url[0]));
           return new Ok(void 0);
@@ -8392,9 +8366,7 @@ function handle_route_change(model, route) {
       (() => {
         let _record = model;
         return new Model2(
-          new ConfigPage(
-            new ConfigModel(model.oauth_config, new_map())
-          ),
+          new ConfigPage(init_from_config(model.oauth_config)),
           _record.oauth_config,
           _record.token_response
         );
@@ -8405,7 +8377,7 @@ function handle_route_change(model, route) {
     return [model, none()];
   }
 }
-function update_with(update_resp, model, to_model, to_msg2) {
+function update_with(update_resp, model, to_model, to_msg) {
   let sub_model = update_resp[0];
   let effect = update_resp[1];
   return [
@@ -8417,7 +8389,7 @@ function update_with(update_resp, model, to_model, to_msg2) {
         _record.token_response
       );
     })(),
-    map6(effect, to_msg2)
+    map6(effect, to_msg)
   ];
 }
 function update2(model, msg) {
@@ -8435,7 +8407,6 @@ function update2(model, msg) {
     return [model, login(model.oauth_config)];
   } else if (msg instanceof LoggedInSuccessfully) {
     let token = msg[0];
-    echo2("Logged in successfully", "src/litebug_gleam.gleam", 288);
     return [
       (() => {
         let _record = model;
@@ -8475,7 +8446,7 @@ function update2(model, msg) {
     let new_model = $2[0];
     let effect = $2[1];
     if (msg$1 instanceof Save) {
-      let _pipe$1 = [
+      return [
         (() => {
           let _record = new_model;
           return new Model2(
@@ -8486,7 +8457,6 @@ function update2(model, msg) {
         })(),
         effect
       ];
-      return echo2(_pipe$1, "src/litebug_gleam.gleam", 313);
     } else {
       return [new_model, effect];
     }
@@ -8648,7 +8618,7 @@ function main() {
     throw makeError(
       "let_assert",
       "litebug_gleam",
-      38,
+      37,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }
@@ -8667,7 +8637,7 @@ function main() {
     throw makeError(
       "let_assert",
       "litebug_gleam",
-      40,
+      39,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $1 }
@@ -8675,11 +8645,11 @@ function main() {
   }
   return void 0;
 }
-function echo2(value4, file, line) {
+function echo(value4, file, line) {
   const grey = "\x1B[90m";
   const reset_color = "\x1B[39m";
   const file_line = `${file}:${line}`;
-  const string_value = echo$inspect2(value4);
+  const string_value = echo$inspect(value4);
   if (globalThis.process?.stderr?.write) {
     const string6 = `${grey}${file_line}${reset_color}
 ${string_value}
@@ -8697,7 +8667,7 @@ ${string_value}`;
   }
   return value4;
 }
-function echo$inspectString2(str) {
+function echo$inspectString(str) {
   let new_str = '"';
   for (let i = 0; i < str.length; i++) {
     let char = str[i];
@@ -8722,7 +8692,7 @@ function echo$inspectString2(str) {
   new_str += '"';
   return new_str;
 }
-function echo$inspectDict2(map9) {
+function echo$inspectDict(map9) {
   let body2 = "dict.from_list([";
   let first3 = true;
   let key_value_pairs = [];
@@ -8733,29 +8703,29 @@ function echo$inspectDict2(map9) {
   key_value_pairs.forEach(([key3, value4]) => {
     if (!first3)
       body2 = body2 + ", ";
-    body2 = body2 + "#(" + echo$inspect2(key3) + ", " + echo$inspect2(value4) + ")";
+    body2 = body2 + "#(" + echo$inspect(key3) + ", " + echo$inspect(value4) + ")";
     first3 = false;
   });
   return body2 + "])";
 }
-function echo$inspectCustomType2(record) {
+function echo$inspectCustomType(record) {
   const props = globalThis.Object.keys(record).map((label) => {
-    const value4 = echo$inspect2(record[label]);
+    const value4 = echo$inspect(record[label]);
     return isNaN(parseInt(label)) ? `${label}: ${value4}` : value4;
   }).join(", ");
   return props ? `${record.constructor.name}(${props})` : record.constructor.name;
 }
-function echo$inspectObject2(v) {
+function echo$inspectObject(v) {
   const name = Object.getPrototypeOf(v)?.constructor?.name || "Object";
   const props = [];
   for (const k of Object.keys(v)) {
-    props.push(`${echo$inspect2(k)}: ${echo$inspect2(v[k])}`);
+    props.push(`${echo$inspect(k)}: ${echo$inspect(v[k])}`);
   }
   const body2 = props.length ? " " + props.join(", ") + " " : "";
   const head = name === "Object" ? "" : name + " ";
   return `//js(${head}{${body2}})`;
 }
-function echo$inspect2(v) {
+function echo$inspect(v) {
   const t = typeof v;
   if (v === true)
     return "True";
@@ -8766,23 +8736,23 @@ function echo$inspect2(v) {
   if (v === void 0)
     return "Nil";
   if (t === "string")
-    return echo$inspectString2(v);
+    return echo$inspectString(v);
   if (t === "bigint" || t === "number")
     return v.toString();
   if (globalThis.Array.isArray(v))
-    return `#(${v.map(echo$inspect2).join(", ")})`;
+    return `#(${v.map(echo$inspect).join(", ")})`;
   if (v instanceof List)
-    return `[${v.toArray().map(echo$inspect2).join(", ")}]`;
+    return `[${v.toArray().map(echo$inspect).join(", ")}]`;
   if (v instanceof UtfCodepoint)
     return `//utfcodepoint(${String.fromCodePoint(v.value)})`;
   if (v instanceof BitArray)
-    return echo$inspectBitArray2(v);
+    return echo$inspectBitArray(v);
   if (v instanceof CustomType)
-    return echo$inspectCustomType2(v);
-  if (echo$isDict2(v))
-    return echo$inspectDict2(v);
+    return echo$inspectCustomType(v);
+  if (echo$isDict(v))
+    return echo$inspectDict(v);
   if (v instanceof Set)
-    return `//js(Set(${[...v].map(echo$inspect2).join(", ")}))`;
+    return `//js(Set(${[...v].map(echo$inspect).join(", ")}))`;
   if (v instanceof RegExp)
     return `//js(${v})`;
   if (v instanceof Date)
@@ -8793,9 +8763,9 @@ function echo$inspect2(v) {
       args.push(String.fromCharCode(i + 97));
     return `//fn(${args.join(", ")}) { ... }`;
   }
-  return echo$inspectObject2(v);
+  return echo$inspectObject(v);
 }
-function echo$inspectBitArray2(bitArray) {
+function echo$inspectBitArray(bitArray) {
   let endOfAlignedBytes = bitArray.bitOffset + 8 * Math.trunc(bitArray.bitSize / 8);
   let alignedBytes = bitArraySlice(
     bitArray,
@@ -8822,7 +8792,7 @@ function echo$inspectBitArray2(bitArray) {
     return `<<${Array.from(alignedBytes.rawBuffer).join(", ")}>>`;
   }
 }
-function echo$isDict2(value4) {
+function echo$isDict(value4) {
   try {
     return value4 instanceof Dict;
   } catch {

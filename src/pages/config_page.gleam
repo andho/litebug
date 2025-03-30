@@ -1,13 +1,11 @@
 import components/text_input
-import filter
+import form
 import gleam/dict.{type Dict}
 import gleam/dynamic/decode
 import gleam/json
-import gleam/option.{None, Some}
+import gleam/option.{Some}
 import gleam/result
 import glebs
-import glebs/request
-import lustre/attribute
 import lustre/effect
 import modem
 import plinth/javascript/storage
@@ -24,7 +22,44 @@ import components/button.{button}
 import style.{text_body}
 
 pub type ConfigModel {
-  ConfigModel(config: glebs.OAuth2ClientConfig, errors: Dict(Field, String))
+  ConfigModel(
+    config: glebs.OAuth2ClientConfig,
+    errors: Dict(Field, String),
+    form: form.Form(Field),
+  )
+}
+
+pub fn init_from_config(config: glebs.OAuth2ClientConfig) {
+  let defaults = default_model()
+  let get_config_value = fn(field: Field) {
+    case field {
+      AuthorizeUrl -> config.authorize_url
+      TokenUrl -> config.token_url
+      RedirectUri -> config.redirect_uri
+      ClientId -> config.client_id
+      Scope -> config.scope
+    }
+  }
+
+  ConfigModel(
+    config: config,
+    errors: dict.new(),
+    form: form.Form(
+      fields: dict.map_values(defaults.form.fields, fn(field, input_field) {
+        form.InputField(..input_field, value: get_config_value(field))
+      }),
+    ),
+  )
+}
+
+pub fn default_config() {
+  glebs.OAuth2ClientConfig(
+    client_id: "",
+    authorize_url: "",
+    token_url: "",
+    redirect_uri: "",
+    scope: "",
+  )
 }
 
 pub fn default_model() {
@@ -37,12 +72,20 @@ pub fn default_model() {
       scope: "",
     ),
     errors: dict.new(),
+    form: form.Form(
+      fields: dict.from_list([
+        form.init_field(AuthorizeUrl, form.required),
+        form.init_field(TokenUrl, form.required),
+        form.init_field(RedirectUri, form.required),
+        form.init_field(ClientId, form.required),
+        form.init_field(Scope, form.required),
+      ]),
+    ),
   )
 }
 
 pub type ConfigMsg {
-  ConfigFieldChanged(Field, String)
-  InvalidValue(Field, String)
+  FormEvent(form.FormEvent(Field))
   Save
   Cancel
 }
@@ -60,25 +103,29 @@ pub fn update(
   msg: ConfigMsg,
 ) -> #(ConfigModel, effect.Effect(ConfigMsg)) {
   case msg {
-    ConfigFieldChanged(field, value) -> {
-      let new_config = case field {
-        AuthorizeUrl ->
-          glebs.OAuth2ClientConfig(..model.config, authorize_url: value)
-        TokenUrl -> glebs.OAuth2ClientConfig(..model.config, token_url: value)
-        RedirectUri ->
-          glebs.OAuth2ClientConfig(..model.config, redirect_uri: value)
-        ClientId -> glebs.OAuth2ClientConfig(..model.config, client_id: value)
-        Scope -> glebs.OAuth2ClientConfig(..model.config, scope: value)
-      }
-      #(ConfigModel(..model, config: new_config), effect.none())
-    }
-    InvalidValue(field, value) -> {
-      let new_errors = dict.insert(model.errors, field, value)
-      #(ConfigModel(..model, errors: new_errors), effect.none())
+    FormEvent(form.OnChange(field, value)) -> {
+      let new_form =
+        form.handle_form_event(model.form, form.OnChange(field, value))
+      #(ConfigModel(..model, form: new_form), effect.none())
     }
     Save -> {
-      let _ = save_config_storage(model.config)
-      #(model, modem.back(1))
+      let config =
+        dict.fold(model.form.fields, model.config, fn(conf, field, input_field) {
+          case field {
+            AuthorizeUrl ->
+              glebs.OAuth2ClientConfig(..conf, authorize_url: input_field.value)
+            TokenUrl ->
+              glebs.OAuth2ClientConfig(..conf, token_url: input_field.value)
+            RedirectUri ->
+              glebs.OAuth2ClientConfig(..conf, redirect_uri: input_field.value)
+            ClientId ->
+              glebs.OAuth2ClientConfig(..conf, client_id: input_field.value)
+            Scope -> glebs.OAuth2ClientConfig(..conf, scope: input_field.value)
+          }
+        })
+      let new_model = ConfigModel(..model, config: config)
+      let _ = save_config_storage(config)
+      #(new_model, modem.back(1))
     }
     Cancel -> #(model, modem.back(1))
   }
@@ -88,11 +135,6 @@ pub fn config_view(model: ConfigModel, stylesheet) {
   let config = model.config
 
   use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
-  let a = {
-    filter.to_msg(fn(a) { ConfigFieldChanged(AuthorizeUrl, a) })
-    |> filter.required
-    |> filter.process(fn(err) { InvalidValue(AuthorizeUrl, err) })
-  }
   html.div(
     css.class([
       css.width(px(400)),
@@ -124,33 +166,33 @@ pub fn config_view(model: ConfigModel, stylesheet) {
         [
           text_input.text_input(
             "Authorize URL",
-            config.authorize_url,
-            event.on_input(a),
-            error: option.from_result(dict.get(model.errors, AuthorizeUrl)),
+            form.field_value(model.form, AuthorizeUrl),
+            form.handle_on_change(FormEvent, AuthorizeUrl),
+            error: form.field_error(model.form, AuthorizeUrl),
           ),
           text_input.text_input(
             "Token URL",
-            config.token_url,
-            event.on_input(ConfigFieldChanged(TokenUrl, _)),
-            error: None,
+            form.field_value(model.form, TokenUrl),
+            form.handle_on_change(FormEvent, TokenUrl),
+            error: form.field_error(model.form, TokenUrl),
           ),
           text_input.text_input(
             "Redirect URI",
-            config.redirect_uri,
-            event.on_input(ConfigFieldChanged(RedirectUri, _)),
-            error: None,
+            form.field_value(model.form, RedirectUri),
+            form.handle_on_change(FormEvent, RedirectUri),
+            error: form.field_error(model.form, RedirectUri),
           ),
           text_input.text_input(
             "Client ID",
-            config.client_id,
-            event.on_input(ConfigFieldChanged(ClientId, _)),
-            error: None,
+            form.field_value(model.form, ClientId),
+            form.handle_on_change(FormEvent, ClientId),
+            error: form.field_error(model.form, ClientId),
           ),
           text_input.text_input(
             "Scope",
-            config.scope,
-            event.on_input(ConfigFieldChanged(Scope, _)),
-            error: option.from_result(dict.get(model.errors, Scope)),
+            form.field_value(model.form, Scope),
+            form.handle_on_change(FormEvent, Scope),
+            error: form.field_error(model.form, Scope),
           ),
         ],
       ),
@@ -178,7 +220,6 @@ pub fn save_config_storage(config: glebs.OAuth2ClientConfig) {
       "glebs_config",
       oauth2_config_encoder(config),
     ))
-  echo "Saved config"
 }
 
 pub fn oauth2_client_config_decoder() -> decode.Decoder(

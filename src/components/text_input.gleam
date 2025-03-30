@@ -14,7 +14,6 @@ pub fn text_input(
   error error: option.Option(String),
 ) -> element.Element(a) {
   let text_color = theme.color(theme.Text)
-  let class = css.class([])
 
   html.div(
     css.class([
@@ -48,7 +47,7 @@ pub fn text_input(
             css.class([
               css.color(theme.color(theme.TextError)),
               css.font_size(px(12)),
-              css.padding_left(px(12)),
+              css.margin_top(px(4)),
             ]),
             [],
             [html.text(error)],

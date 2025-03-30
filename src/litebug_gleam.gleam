@@ -1,5 +1,4 @@
 import gleam/dict
-import gleam/int
 import gleam/javascript/promise
 import gleam/json
 import gleam/option.{None, Some}
@@ -91,7 +90,8 @@ fn get_route(uri: uri.Uri) -> Route {
     ["oauth", "handle"] -> HandleOauthPage
     ["login"] -> LoginPage
     ["logout"] -> LogoutPage
-    ["config"] -> ConfigPage(config_page.default_model())
+    ["config"] ->
+      ConfigPage(config_page.init_from_config(config_page.default_config()))
     _ -> HomePage
   }
 }
@@ -102,8 +102,6 @@ fn load_config() -> glebs.OAuth2ClientConfig {
 
     use config <- result.try(storage.get_item(local_storage, "glebs_config"))
 
-    echo "Loaded config"
-    echo config
     use config <- result.try(
       json.parse(config, using: config_page.oauth2_client_config_decoder())
       |> result.map_error(fn(error) {
@@ -111,7 +109,6 @@ fn load_config() -> glebs.OAuth2ClientConfig {
         Nil
       }),
     )
-    echo "Dispatching"
     Ok(config)
   }
   |> option.from_result
@@ -130,8 +127,6 @@ fn load_token(model: Model) -> Model {
 
     use token <- result.try(storage.get_item(local_storage, "auth_token"))
 
-    echo "Loaded token"
-    echo token
     use token <- result.try(
       json.parse(token, using: glebs_request.token_resp_decoder())
       |> result.map_error(fn(error) {
@@ -139,7 +134,6 @@ fn load_token(model: Model) -> Model {
         Nil
       }),
     )
-    echo "Dispatching"
     Ok(Model(..model, token_response: Some(token)))
   }
   |> result.unwrap(model)
@@ -149,8 +143,7 @@ fn check_auth_code_handle(
   config: glebs.OAuth2ClientConfig,
 ) -> effect.Effect(Msg) {
   effect.from(fn(dispatch) {
-    echo #("location", window.location())
-    let a =
+    let _ =
       modem.initial_uri()
       |> result.try(fn(current_uri) {
         case current_uri.query {
@@ -160,7 +153,6 @@ fn check_auth_code_handle(
       })
       |> result.map(dict.from_list)
       |> result.try(dict.get(_, "code"))
-      |> echo
       |> result.map(try_get_access_token(_, config, dispatch))
 
     Nil
@@ -182,7 +174,6 @@ fn try_get_access_token(
   config: glebs.OAuth2ClientConfig,
   dispatch: fn(Msg) -> Nil,
 ) -> Nil {
-  echo "Trying to get access token"
   let _ = {
     use local_storage <- result.try(storage.local())
 
@@ -192,8 +183,6 @@ fn try_get_access_token(
     |> promise.map(fn(token) {
       case token {
         Ok(token) -> {
-          echo token
-
           let _ =
             token
             |> auth_token_to_json
@@ -236,7 +225,6 @@ fn login(config: glebs.OAuth2ClientConfig) -> effect.Effect(Msg) {
         storage.local()
         |> result.map(storage.set_item(_, "glebs_verifier", authorize_url.1))
 
-      echo authorize_url
       let curr_window = window.self()
       window.set_location(curr_window, uri.to_string(authorize_url.0))
 
@@ -266,10 +254,7 @@ pub fn handle_route_change(
     ConfigPage(_) -> #(
       Model(
         ..model,
-        route: ConfigPage(config_page.ConfigModel(
-          config: model.oauth_config,
-          errors: dict.new(),
-        )),
+        route: ConfigPage(config_page.init_from_config(model.oauth_config)),
       ),
       effect.none(),
     )
@@ -285,7 +270,6 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
     Login, _ -> #(model, login(model.oauth_config))
 
     LoggedInSuccessfully(token), _ -> {
-      echo "Logged in successfully"
       #(
         Model(..model, token_response: Some(token)),
         modem.replace("/", None, None),
@@ -308,9 +292,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
         |> update_with(model, model.ConfigPage, model.ConfigPageMsg)
 
       case msg {
-        config_page.Save ->
-          #(Model(..new_model, oauth_config: new_config_model.config), effect)
-          |> echo
+        config_page.Save -> #(
+          Model(..new_model, oauth_config: new_config_model.config),
+          effect,
+        )
         _ -> #(new_model, effect)
       }
     }
@@ -422,7 +407,6 @@ pub fn home_view(_model: Model, stylesheet) {
     ]),
   ])
 }
-
 //pub fn get_cat() -> effect.Effect(Msg) {
 //  swr(Nil, cats.get_cat_promise, fn(result) {
 //    case result {
@@ -441,62 +425,62 @@ pub fn home_view(_model: Model, stylesheet) {
 //  //})
 //}
 
-pub type FetchResult(data, error) {
-  FetchResult(
-    data: option.Option(data),
-    error: option.Option(error),
-    loading: Bool,
-  )
-}
-
-pub fn swr(
-  key: key,
-  fetcher: fn(key) -> promise.Promise(Result(a, b)),
-  wrap_effect: fn(FetchResult(a, b)) -> c,
-) {
-  effect.from(fn(dispatch) {
-    FetchResult(data: option.None, error: option.None, loading: True)
-    |> wrap_effect
-    |> dispatch
-
-    fetcher(key)
-    |> promise.map(fn(p) {
-      case p {
-        Ok(data) ->
-          FetchResult(
-            data: option.Some(data),
-            error: option.None,
-            loading: False,
-          )
-        Error(error) ->
-          FetchResult(
-            data: option.None,
-            error: option.Some(error),
-            loading: False,
-          )
-      }
-    })
-    |> promise.map(wrap_effect)
-    |> promise.tap(dispatch)
-
-    Nil
-  })
-}
-
-pub type FN(a, r) =
-  fn(a) -> r
-
-pub type FnKey(a, r) =
-  #(FN(a, r), a)
-
-fn key_fn(f: FnKey(a, r)) -> r {
-  f.0(f.1)
-}
-
-fn fn_to_test(a: Int) -> String {
-  int.to_string(a)
-}
-
-fn test_key_fn() {
-  key_fn(#(fn_to_test, 1))
-}
+//pub type FetchResult(data, error) {
+//  FetchResult(
+//    data: option.Option(data),
+//    error: option.Option(error),
+//    loading: Bool,
+//  )
+//}
+//
+//pub fn swr(
+//  key: key,
+//  fetcher: fn(key) -> promise.Promise(Result(a, b)),
+//  wrap_effect: fn(FetchResult(a, b)) -> c,
+//) {
+//  effect.from(fn(dispatch) {
+//    FetchResult(data: option.None, error: option.None, loading: True)
+//    |> wrap_effect
+//    |> dispatch
+//
+//    fetcher(key)
+//    |> promise.map(fn(p) {
+//      case p {
+//        Ok(data) ->
+//          FetchResult(
+//            data: option.Some(data),
+//            error: option.None,
+//            loading: False,
+//          )
+//        Error(error) ->
+//          FetchResult(
+//            data: option.None,
+//            error: option.Some(error),
+//            loading: False,
+//          )
+//      }
+//    })
+//    |> promise.map(wrap_effect)
+//    |> promise.tap(dispatch)
+//
+//    Nil
+//  })
+//}
+//
+//pub type FN(a, r) =
+//  fn(a) -> r
+//
+//pub type FnKey(a, r) =
+//  #(FN(a, r), a)
+//
+//fn key_fn(f: FnKey(a, r)) -> r {
+//  f.0(f.1)
+//}
+//
+//fn fn_to_test(a: Int) -> String {
+//  int.to_string(a)
+//}
+//
+//fn test_key_fn() {
+//  key_fn(#(fn_to_test, 1))
+//}
