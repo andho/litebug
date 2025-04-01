@@ -132,8 +132,6 @@ pub fn update(
 }
 
 pub fn config_view(model: ConfigModel, stylesheet) {
-  let config = model.config
-
   use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
   html.div(
     css.class([
@@ -204,8 +202,8 @@ pub fn config_view(model: ConfigModel, stylesheet) {
         ]),
         [],
         [
-          button("Cancel", button.Secondary, Some(event.on_click(Cancel))),
-          button("Save", button.Primary, Some(event.on_click(Save))),
+          button("Cancel", button.Secondary, Some(event.on_click(Cancel)), []),
+          button("Save", button.Primary, Some(event.on_click(Save)), []),
         ],
       ),
     ],

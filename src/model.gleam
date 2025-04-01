@@ -5,7 +5,7 @@ import pages/config_page
 pub type Model {
   Model(
     route: Route,
-    oauth_config: glebs.OAuth2ClientConfig,
+    oauth_config: option.Option(glebs.OAuth2ClientConfig),
     token_response: option.Option(glebs.TokenResponse),
   )
 }

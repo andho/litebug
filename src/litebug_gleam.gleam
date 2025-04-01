@@ -5,6 +5,7 @@ import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri
 import lustre
+import lustre/attribute
 import lustre/effect
 import lustre/element
 import modem
@@ -60,6 +61,15 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
         _ -> effect.none()
       },
       modem.init(on_url_change),
+      case model, current_route {
+        Model(token_response: Some(_), ..), _
+        | Model(token_response: None, ..), HandleOauthPage
+        | Model(token_response: None, ..), ConfigPage(_)
+        | Model(token_response: None, ..), LoginPage
+        -> init_route(current_route)
+        Model(token_response: None, ..), _ ->
+          modem.replace("/login", None, None)
+      },
       case model.token_response, current_route {
         Some(_), _
         | None, HandleOauthPage
@@ -96,7 +106,7 @@ fn get_route(uri: uri.Uri) -> Route {
   }
 }
 
-fn load_config() -> glebs.OAuth2ClientConfig {
+fn load_config() -> option.Option(glebs.OAuth2ClientConfig) {
   {
     use local_storage <- result.try(storage.local())
 
@@ -112,13 +122,6 @@ fn load_config() -> glebs.OAuth2ClientConfig {
     Ok(config)
   }
   |> option.from_result
-  |> option.unwrap(glebs.OAuth2ClientConfig(
-    client_id: "",
-    authorize_url: "",
-    token_url: "",
-    redirect_uri: "",
-    scope: "",
-  ))
 }
 
 fn load_token(model: Model) -> Model {
@@ -140,20 +143,26 @@ fn load_token(model: Model) -> Model {
 }
 
 fn check_auth_code_handle(
-  config: glebs.OAuth2ClientConfig,
+  config: option.Option(glebs.OAuth2ClientConfig),
 ) -> effect.Effect(Msg) {
   effect.from(fn(dispatch) {
-    let _ =
-      modem.initial_uri()
-      |> result.try(fn(current_uri) {
-        case current_uri.query {
-          Some(query) -> uri.parse_query(query)
-          None -> Error(Nil)
-        }
-      })
-      |> result.map(dict.from_list)
-      |> result.try(dict.get(_, "code"))
-      |> result.map(try_get_access_token(_, config, dispatch))
+    case config {
+      None -> modem.replace("/login", None, None)
+      Some(config) -> {
+        let _ =
+          modem.initial_uri()
+          |> result.try(fn(current_uri) {
+            case current_uri.query {
+              Some(query) -> uri.parse_query(query)
+              None -> Error(Nil)
+            }
+          })
+          |> result.map(dict.from_list)
+          |> result.try(dict.get(_, "code"))
+          |> result.map(try_get_access_token(_, config, dispatch))
+          |> result.unwrap(effect.none())
+      }
+    }
 
     Nil
   })
@@ -173,8 +182,8 @@ fn try_get_access_token(
   code: String,
   config: glebs.OAuth2ClientConfig,
   dispatch: fn(Msg) -> Nil,
-) -> Nil {
-  let _ = {
+) -> effect.Effect(Msg) {
+  {
     use local_storage <- result.try(storage.local())
 
     use verifier <- result.try(storage.get_item(local_storage, "glebs_verifier"))
@@ -211,10 +220,9 @@ fn try_get_access_token(
       }
     })
 
-    Ok(Nil)
+    Ok(effect.none())
   }
-
-  Nil
+  |> result.unwrap(effect.none())
 }
 
 fn login(config: glebs.OAuth2ClientConfig) -> effect.Effect(Msg) {
@@ -254,7 +262,10 @@ pub fn handle_route_change(
     ConfigPage(_) -> #(
       Model(
         ..model,
-        route: ConfigPage(config_page.init_from_config(model.oauth_config)),
+        route: ConfigPage(config_page.init_from_config(
+          model.oauth_config
+          |> option.unwrap(config_page.default_config()),
+        )),
       ),
       effect.none(),
     )
@@ -263,27 +274,30 @@ pub fn handle_route_change(
 }
 
 pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
-  case msg, model.route {
-    RouteChanged(route), _ ->
+  case msg, model.route, model {
+    RouteChanged(route), _, _ ->
       handle_route_change(Model(..model, route: route), route)
 
-    Login, _ -> #(model, login(model.oauth_config))
+    Login, _, Model(oauth_config: Some(oauth_config), ..) -> #(
+      model,
+      login(oauth_config),
+    )
 
-    LoggedInSuccessfully(token), _ -> {
+    LoggedInSuccessfully(token), _, _ -> {
       #(
         Model(..model, token_response: Some(token)),
         modem.replace("/", None, None),
       )
     }
 
-    Logout, _ -> #(model, logout())
+    Logout, _, _ -> #(model, logout())
 
-    LoggedOut, _ -> #(
+    LoggedOut, _, _ -> #(
       Model(..model, token_response: None),
       modem.replace("/login", None, None),
     )
 
-    model.ConfigPageMsg(msg), model.ConfigPage(config_model) -> {
+    model.ConfigPageMsg(msg), model.ConfigPage(config_model), _ -> {
       let #(new_config_model, config_effect) =
         config_page.update(config_model, msg)
 
@@ -293,7 +307,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
 
       case msg {
         config_page.Save -> #(
-          Model(..new_model, oauth_config: new_config_model.config),
+          Model(..new_model, oauth_config: Some(new_config_model.config)),
           effect,
         )
         _ -> #(new_model, effect)
@@ -302,7 +316,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
 
     // ignore other messages. Occassionally uncomment to check for
     // exhaustiveness
-    _, _ -> #(model, effect.none())
+    _, _, _ -> #(model, effect.none())
   }
 }
 
@@ -349,8 +363,19 @@ pub fn login_view(model: Model, stylesheet) {
     [],
     [
       html.div(css.class([]), [], [
-        html.div(text_body(), [], [html.text("You are configured to log into:")]),
-        html.div(text_body(), [], [html.text(model.oauth_config.authorize_url)]),
+        html.div(text_body(), [], [
+          html.text(case model.oauth_config {
+            Some(_) -> "You are configured to log into:"
+            None -> "You will need to configure before you can login"
+          }),
+        ]),
+        html.div(text_body(), [], [
+          html.text(
+            model.oauth_config
+            |> option.map(fn(conf) { conf.authorize_url })
+            |> option.unwrap(""),
+          ),
+        ]),
       ]),
       html.div(
         css.class([
@@ -360,8 +385,20 @@ pub fn login_view(model: Model, stylesheet) {
         ]),
         [],
         [
-          button("Login", button.Primary, Some(event.on_click(Login))),
-          link_button("Change Config", button.Secondary, "/config"),
+          button("Login", button.Primary, Some(event.on_click(Login)), [
+            button.Disabled(case model.oauth_config {
+              Some(_) -> False
+              None -> True
+            }),
+          ]),
+          link_button(
+            case model.oauth_config {
+              Some(_) -> "Change Config"
+              None -> "Set Config"
+            },
+            button.Secondary,
+            "/config",
+          ),
         ],
       ),
     ],
@@ -403,7 +440,7 @@ pub fn home_view(_model: Model, stylesheet) {
 
   html.div(css.class([]), [], [
     html.div(css.class([]), [], [
-      button("Logout", button.Primary, Some(event.on_click(Logout))),
+      button("Logout", button.Primary, Some(event.on_click(Logout)), []),
     ]),
   ])
 }

@@ -2082,6 +2082,22 @@ function bit_array_inspect(bits, acc) {
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/float.mjs
+function min(a2, b) {
+  let $ = a2 < b;
+  if ($) {
+    return a2;
+  } else {
+    return b;
+  }
+}
+function max(a2, b) {
+  let $ = a2 > b;
+  if ($) {
+    return a2;
+  } else {
+    return b;
+  }
+}
 function negate(x) {
   return -1 * x;
 }
@@ -2343,6 +2359,25 @@ function index_fold_loop(loop$over, loop$acc, loop$with, loop$index) {
 }
 function index_fold(list2, initial, fun) {
   return index_fold_loop(list2, initial, fun, 0);
+}
+function any(loop$list, loop$predicate) {
+  while (true) {
+    let list2 = loop$list;
+    let predicate = loop$predicate;
+    if (list2.hasLength(0)) {
+      return false;
+    } else {
+      let first$1 = list2.head;
+      let rest$1 = list2.tail;
+      let $ = predicate(first$1);
+      if ($) {
+        return true;
+      } else {
+        loop$list = rest$1;
+        loop$predicate = predicate;
+      }
+    }
+  }
 }
 function intersperse_loop(loop$list, loop$separator, loop$acc) {
   while (true) {
@@ -4577,6 +4612,9 @@ function handlers(element3) {
 function attribute(name, value4) {
   return new Attribute(name, identity(value4), false);
 }
+function property(name, value4) {
+  return new Attribute(name, identity(value4), true);
+}
 function on(name, handler) {
   return new Event2("on" + name, handler);
 }
@@ -4616,6 +4654,9 @@ function type_(name) {
 }
 function value(val) {
   return attribute("value", val);
+}
+function disabled(is_disabled) {
+  return property("disabled", is_disabled);
 }
 function href(uri) {
   return attribute("href", uri);
@@ -5027,8 +5068,8 @@ function lustreServerEventHandler(event2) {
   return {
     tag,
     data: include.reduce(
-      (data2, property2) => {
-        const path = property2.split(".");
+      (data2, property3) => {
+        const path = property3.split(".");
         for (let i = 0, o = data2, e = event2; i < path.length; i++) {
           if (i === path.length - 1) {
             o[path[i]] = e[path[i]];
@@ -6094,20 +6135,20 @@ function compute_property(indent2, key3, value4, important) {
   let important$1 = _block;
   return base_indent + key3 + ": " + value4 + important$1 + ";";
 }
-function handle_property(props, property2) {
-  if (!(property2 instanceof Property)) {
+function handle_property(props, property3) {
+  if (!(property3 instanceof Property)) {
     throw makeError(
       "let_assert",
       "sketch/internals/cache/cache",
       243,
       "handle_property",
       "Pattern match failed, no pattern matched the value.",
-      { value: property2 }
+      { value: property3 }
     );
   }
-  let key3 = property2.key;
-  let value4 = property2.value;
-  let important = property2.important;
+  let key3 = property3.key;
+  let value4 = property3.value;
+  let important = property3.important;
   let css_property = compute_property(props.indentation, key3, value4, important);
   let properties = prepend(css_property, props.properties);
   let _record = props;
@@ -6641,80 +6682,80 @@ function to_string4(size) {
 function class$4(styles) {
   return class$2(styles);
 }
-function property(field3, content) {
+function property2(field3, content) {
   return new Property(field3, content, false);
 }
 function align_items(align) {
-  return property("align-items", align);
+  return property2("align-items", align);
 }
 function background(background2) {
-  return property("background", background2);
+  return property2("background", background2);
 }
 function background_color(value4) {
-  return property("background-color", value4);
+  return property2("background-color", value4);
 }
 function border_color(value4) {
-  return property("border-color", value4);
+  return property2("border-color", value4);
 }
 function border_radius(border_radius2) {
-  return property("border-radius", to_string4(border_radius2));
+  return property2("border-radius", to_string4(border_radius2));
 }
 function border_style(value4) {
-  return property("border-style", value4);
+  return property2("border-style", value4);
 }
 function border_width(value4) {
-  return property("border-width", to_string4(value4));
+  return property2("border-width", to_string4(value4));
 }
 function color(color4) {
-  return property("color", color4);
+  return property2("color", color4);
 }
 function display(display2) {
-  return property("display", display2);
+  return property2("display", display2);
 }
 function flex(flex2) {
-  return property("flex", flex2);
+  return property2("flex", flex2);
 }
 function flex_direction(flex_direction2) {
-  return property("flex-direction", flex_direction2);
+  return property2("flex-direction", flex_direction2);
 }
 function font_size(font_size2) {
-  return property("font-size", to_string4(font_size2));
+  return property2("font-size", to_string4(font_size2));
 }
 function gap(gap2) {
-  return property("gap", to_string4(gap2));
+  return property2("gap", to_string4(gap2));
 }
 function height(height2) {
-  return property("height", to_string4(height2));
+  return property2("height", to_string4(height2));
 }
 function justify_content(justify) {
-  return property("justify-content", justify);
+  return property2("justify-content", justify);
 }
 function margin_top(margin) {
-  return property("margin-top", to_string4(margin));
+  return property2("margin-top", to_string4(margin));
 }
 function padding(padding2) {
-  return property("padding", to_string4(padding2));
+  return property2("padding", to_string4(padding2));
 }
 function padding_bottom(padding2) {
-  return property("padding-bottom", to_string4(padding2));
+  return property2("padding-bottom", to_string4(padding2));
 }
 function padding_left(padding2) {
-  return property("padding-left", to_string4(padding2));
+  return property2("padding-left", to_string4(padding2));
 }
 function padding_right(padding2) {
-  return property("padding-right", to_string4(padding2));
+  return property2("padding-right", to_string4(padding2));
 }
 function padding_top(padding2) {
-  return property("padding-top", to_string4(padding2));
+  return property2("padding-top", to_string4(padding2));
 }
 function row_gap(row_gap2) {
-  return property("row-gap", to_string4(row_gap2));
+  return property2("row-gap", to_string4(row_gap2));
 }
 function text_decoration(text_decoration2) {
-  return property("text-decoration", text_decoration2);
+  return property2("text-decoration", text_decoration2);
 }
 function width(width2) {
-  return property("width", to_string4(width2));
+  return property2("width", to_string4(width2));
 }
 
 // build/dev/javascript/sketch/sketch.mjs
@@ -6988,6 +7029,15 @@ var Rgba = class extends CustomType {
     this.a = a2;
   }
 };
+var Hsla = class extends CustomType {
+  constructor(h, s, l, a2) {
+    super();
+    this.h = h;
+    this.s = s;
+    this.l = l;
+    this.a = a2;
+  }
+};
 function valid_colour_value(c) {
   let $ = c > 1 || c < 0;
   if ($) {
@@ -7034,20 +7084,107 @@ function hsla_to_rgba(h, s, l, a2) {
   let b = hue_to_rgb(h - divideFloat(1, 3), m1, m2);
   return [r, g, b, a2];
 }
-function from_rgba(red2, green, blue, alpha) {
+function rgba_to_hsla(r, g, b, a2) {
+  let min_colour = min(r, min(g, b));
+  let max_colour = max(r, max(g, b));
+  let _block;
+  let $ = true;
+  if (max_colour === r) {
+    _block = divide(g - b, max_colour - min_colour);
+  } else if (max_colour === g) {
+    let _pipe = divide(b - r, max_colour - min_colour);
+    _block = then$(_pipe, (d) => {
+      return new Ok(2 + d);
+    });
+  } else {
+    let _pipe = divide(r - g, max_colour - min_colour);
+    _block = then$(_pipe, (d) => {
+      return new Ok(4 + d);
+    });
+  }
+  let h1 = _block;
+  let _block$1;
+  if (h1.isOk()) {
+    let v = h1[0];
+    _block$1 = new Ok(v * divideFloat(1, 6));
+  } else {
+    _block$1 = h1;
+  }
+  let h2 = _block$1;
+  let _block$2;
+  if (h2.isOk() && h2[0] < 0) {
+    let v = h2[0];
+    _block$2 = v + 1;
+  } else if (h2.isOk()) {
+    let v = h2[0];
+    _block$2 = v;
+  } else {
+    _block$2 = 0;
+  }
+  let h3 = _block$2;
+  let l = divideFloat(min_colour + max_colour, 2);
+  let _block$3;
+  let $1 = true;
+  if (min_colour === max_colour) {
+    _block$3 = 0;
+  } else if (l < 0.5) {
+    _block$3 = divideFloat(max_colour - min_colour, max_colour + min_colour);
+  } else {
+    _block$3 = divideFloat(
+      max_colour - min_colour,
+      2 - max_colour - min_colour
+    );
+  }
+  let s = _block$3;
+  return [h3, s, l, a2];
+}
+function from_rgb255(red2, green, blue) {
   return then$(
-    valid_colour_value(red2),
+    (() => {
+      let _pipe = red2;
+      let _pipe$1 = identity(_pipe);
+      let _pipe$2 = divide(_pipe$1, 255);
+      return then$(_pipe$2, valid_colour_value);
+    })(),
     (r) => {
       return then$(
-        valid_colour_value(green),
+        (() => {
+          let _pipe = green;
+          let _pipe$1 = identity(_pipe);
+          let _pipe$2 = divide(_pipe$1, 255);
+          return then$(_pipe$2, valid_colour_value);
+        })(),
         (g) => {
           return then$(
-            valid_colour_value(blue),
+            (() => {
+              let _pipe = blue;
+              let _pipe$1 = identity(_pipe);
+              let _pipe$2 = divide(_pipe$1, 255);
+              return then$(_pipe$2, valid_colour_value);
+            })(),
             (b) => {
+              return new Ok(new Rgba(r, g, b, 1));
+            }
+          );
+        }
+      );
+    }
+  );
+}
+function from_hsla(hue, saturation, lightness, alpha) {
+  return then$(
+    valid_colour_value(hue),
+    (h) => {
+      return then$(
+        valid_colour_value(saturation),
+        (s) => {
+          return then$(
+            valid_colour_value(lightness),
+            (l) => {
               return then$(
                 valid_colour_value(alpha),
                 (a2) => {
-                  return new Ok(new Rgba(r, g, b, a2));
+                  return new Ok(new Hsla(h, s, l, a2));
                 }
               );
             }
@@ -7057,79 +7194,21 @@ function from_rgba(red2, green, blue, alpha) {
     }
   );
 }
-function from_rgba_hex(hex) {
-  let $ = hex > 4294967295 || hex < 0;
+function from_rgb_hex(hex) {
+  let $ = hex > 16777215 || hex < 0;
   if ($) {
     return new Error(void 0);
   } else {
     let _block;
-    let _pipe = bitwise_shift_right(hex, 24);
-    let _pipe$1 = bitwise_and(_pipe, 255);
-    let _pipe$2 = identity(_pipe$1);
-    _block = divide(_pipe$2, 255);
-    let $1 = _block;
-    if (!$1.isOk()) {
-      throw makeError(
-        "let_assert",
-        "gleam_community/colour",
-        590,
-        "from_rgba_hex",
-        "Pattern match failed, no pattern matched the value.",
-        { value: $1 }
-      );
-    }
-    let r = $1[0];
+    let _pipe = bitwise_shift_right(hex, 16);
+    _block = bitwise_and(_pipe, 255);
+    let r = _block;
     let _block$1;
-    let _pipe$3 = bitwise_shift_right(hex, 16);
-    let _pipe$4 = bitwise_and(_pipe$3, 255);
-    let _pipe$5 = identity(_pipe$4);
-    _block$1 = divide(_pipe$5, 255);
-    let $2 = _block$1;
-    if (!$2.isOk()) {
-      throw makeError(
-        "let_assert",
-        "gleam_community/colour",
-        596,
-        "from_rgba_hex",
-        "Pattern match failed, no pattern matched the value.",
-        { value: $2 }
-      );
-    }
-    let g = $2[0];
-    let _block$2;
-    let _pipe$6 = bitwise_shift_right(hex, 8);
-    let _pipe$7 = bitwise_and(_pipe$6, 255);
-    let _pipe$8 = identity(_pipe$7);
-    _block$2 = divide(_pipe$8, 255);
-    let $3 = _block$2;
-    if (!$3.isOk()) {
-      throw makeError(
-        "let_assert",
-        "gleam_community/colour",
-        602,
-        "from_rgba_hex",
-        "Pattern match failed, no pattern matched the value.",
-        { value: $3 }
-      );
-    }
-    let b = $3[0];
-    let _block$3;
-    let _pipe$9 = bitwise_and(hex, 255);
-    let _pipe$10 = identity(_pipe$9);
-    _block$3 = divide(_pipe$10, 255);
-    let $4 = _block$3;
-    if (!$4.isOk()) {
-      throw makeError(
-        "let_assert",
-        "gleam_community/colour",
-        608,
-        "from_rgba_hex",
-        "Pattern match failed, no pattern matched the value.",
-        { value: $4 }
-      );
-    }
-    let a2 = $4[0];
-    return from_rgba(r, g, b, a2);
+    let _pipe$1 = bitwise_shift_right(hex, 8);
+    _block$1 = bitwise_and(_pipe$1, 255);
+    let g = _block$1;
+    let b = bitwise_and(hex, 255);
+    return from_rgb255(r, g, b);
   }
 }
 function to_rgba(colour) {
@@ -7145,6 +7224,21 @@ function to_rgba(colour) {
     let l = colour.l;
     let a2 = colour.a;
     return hsla_to_rgba(h, s, l, a2);
+  }
+}
+function to_hsla(colour) {
+  if (colour instanceof Hsla) {
+    let h = colour.h;
+    let s = colour.s;
+    let l = colour.l;
+    let a2 = colour.a;
+    return [h, s, l, a2];
+  } else {
+    let r = colour.r;
+    let g = colour.g;
+    let b = colour.b;
+    let a2 = colour.a;
+    return rgba_to_hsla(r, g, b, a2);
   }
 }
 function to_rgba_hex(colour) {
@@ -7234,22 +7328,22 @@ var Nord14 = class extends CustomType {
 };
 function nord() {
   return new Nord(
-    unwrap2(from_rgba_hex(3028032), red),
-    unwrap2(from_rgba_hex(3883602), red),
-    unwrap2(from_rgba_hex(4410462), red),
-    unwrap2(from_rgba_hex(5002858), red),
-    unwrap2(from_rgba_hex(14212841), red),
-    unwrap2(from_rgba_hex(15067632), red),
-    unwrap2(from_rgba_hex(15527924), red),
-    unwrap2(from_rgba_hex(9419963), red),
-    unwrap2(from_rgba_hex(8962256), red),
-    unwrap2(from_rgba_hex(8495553), red),
-    unwrap2(from_rgba_hex(6193580), red),
-    unwrap2(from_rgba_hex(12542314), red),
-    unwrap2(from_rgba_hex(13666160), red),
-    unwrap2(from_rgba_hex(15453067), red),
-    unwrap2(from_rgba_hex(10731148), red),
-    unwrap2(from_rgba_hex(11833005), red)
+    unwrap2(from_rgb_hex(3028032), red),
+    unwrap2(from_rgb_hex(3883602), red),
+    unwrap2(from_rgb_hex(4410462), red),
+    unwrap2(from_rgb_hex(5002858), red),
+    unwrap2(from_rgb_hex(14212841), red),
+    unwrap2(from_rgb_hex(15067632), red),
+    unwrap2(from_rgb_hex(15527924), red),
+    unwrap2(from_rgb_hex(9419963), red),
+    unwrap2(from_rgb_hex(8962256), red),
+    unwrap2(from_rgb_hex(8495553), red),
+    unwrap2(from_rgb_hex(6193580), red),
+    unwrap2(from_rgb_hex(12542314), red),
+    unwrap2(from_rgb_hex(13666160), red),
+    unwrap2(from_rgb_hex(15453067), red),
+    unwrap2(from_rgb_hex(10731148), red),
+    unwrap2(from_rgb_hex(11833005), red)
   );
 }
 function color2(node_color) {
@@ -7306,19 +7400,35 @@ var Accent = class extends CustomType {
 };
 var ButtonBgPrimary = class extends CustomType {
 };
+var ButtonBgPrimaryDisabled = class extends CustomType {
+};
 var ButtonBgSecondary = class extends CustomType {
+};
+var ButtonBgSecondaryDisabled = class extends CustomType {
 };
 var ButtonBgWarn = class extends CustomType {
 };
+var ButtonBgWarnDisabled = class extends CustomType {
+};
 var ButtonBgDanger = class extends CustomType {
+};
+var ButtonBgDangerDisabled = class extends CustomType {
 };
 var ButtonTextPrimary = class extends CustomType {
 };
+var ButtonTextPrimaryDisabled = class extends CustomType {
+};
 var ButtonTextSecondary = class extends CustomType {
+};
+var ButtonTextSecondaryDisabled = class extends CustomType {
 };
 var ButtonTextWarn = class extends CustomType {
 };
+var ButtonTextWarnDisabled = class extends CustomType {
+};
 var ButtonTextDanger = class extends CustomType {
+};
+var ButtonTextDangerDisabled = class extends CustomType {
 };
 var CardBackground = class extends CustomType {
 };
@@ -7338,6 +7448,47 @@ var BorderSofter = class extends CustomType {
 };
 var InputBg = class extends CustomType {
 };
+function adjust_lightness(color4, value4) {
+  let hsla = to_hsla(color4);
+  let color$1 = from_hsla(hsla[0], hsla[1], hsla[2] + value4, hsla[3]);
+  if (!color$1.isOk()) {
+    throw makeError(
+      "let_assert",
+      "theme",
+      87,
+      "adjust_lightness",
+      "Pattern match failed, no pattern matched the value.",
+      { value: color$1 }
+    );
+  }
+  let final_color = color$1[0];
+  return final_color;
+}
+function adjust_saturation(color4, value4) {
+  let hsla = to_hsla(color4);
+  let color$1 = from_hsla(hsla[0], hsla[1] + value4, hsla[2], hsla[3]);
+  if (!color$1.isOk()) {
+    throw makeError(
+      "let_assert",
+      "theme",
+      95,
+      "adjust_saturation",
+      "Pattern match failed, no pattern matched the value.",
+      { value: color$1 }
+    );
+  }
+  let final_color = color$1[0];
+  return final_color;
+}
+function disabled_bg(color4) {
+  let _pipe = color4;
+  let _pipe$1 = adjust_lightness(_pipe, -0.15);
+  return adjust_saturation(_pipe$1, -0.03);
+}
+function disabled_text(color4) {
+  let _pipe = color4;
+  return adjust_lightness(_pipe, -0.3);
+}
 function color3(theme_color) {
   let _block$1;
   if (theme_color instanceof Background) {
@@ -7356,19 +7507,37 @@ function color3(theme_color) {
     _block$1 = color2(new Nord10());
   } else if (theme_color instanceof ButtonBgPrimary) {
     _block$1 = color2(new Nord10());
+  } else if (theme_color instanceof ButtonBgPrimaryDisabled) {
+    let _pipe2 = color2(new Nord10());
+    _block$1 = disabled_bg(_pipe2);
   } else if (theme_color instanceof ButtonBgSecondary) {
+    _block$1 = color2(new Nord4());
+  } else if (theme_color instanceof ButtonBgSecondaryDisabled) {
     _block$1 = color2(new Nord4());
   } else if (theme_color instanceof ButtonBgWarn) {
     _block$1 = color2(new Nord11());
+  } else if (theme_color instanceof ButtonBgWarnDisabled) {
+    _block$1 = color2(new Nord11());
   } else if (theme_color instanceof ButtonBgDanger) {
+    _block$1 = color2(new Nord13());
+  } else if (theme_color instanceof ButtonBgDangerDisabled) {
     _block$1 = color2(new Nord13());
   } else if (theme_color instanceof ButtonTextPrimary) {
     _block$1 = color2(new Nord4());
+  } else if (theme_color instanceof ButtonTextPrimaryDisabled) {
+    let _pipe2 = color2(new Nord4());
+    _block$1 = disabled_text(_pipe2);
   } else if (theme_color instanceof ButtonTextSecondary) {
+    _block$1 = color2(new Nord0());
+  } else if (theme_color instanceof ButtonTextSecondaryDisabled) {
     _block$1 = color2(new Nord0());
   } else if (theme_color instanceof ButtonTextWarn) {
     _block$1 = color2(new Nord9());
+  } else if (theme_color instanceof ButtonTextWarnDisabled) {
+    _block$1 = color2(new Nord9());
   } else if (theme_color instanceof ButtonTextDanger) {
+    _block$1 = color2(new Nord13());
+  } else if (theme_color instanceof ButtonTextDangerDisabled) {
     _block$1 = color2(new Nord13());
   } else if (theme_color instanceof CardBackground) {
     _block$1 = color2(new Nord2());
@@ -7403,27 +7572,71 @@ var Secondary = class extends CustomType {
 };
 var Warn = class extends CustomType {
 };
-function button2(label, variant, on_click2) {
+var Danger = class extends CustomType {
+};
+var Disabled = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+function button2(label, variant, on_click2, attributes) {
+  let attrs = map2(
+    attributes,
+    (attr) => {
+      if (attr instanceof Disabled && attr[0]) {
+        return disabled(true);
+      } else {
+        return disabled(false);
+      }
+    }
+  );
+  let disabled2 = any(
+    attributes,
+    (attr) => {
+      if (attr instanceof Disabled && attr[0]) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  );
   let _block;
-  if (variant instanceof Primary) {
+  if (variant instanceof Primary && !disabled2) {
     _block = color3(new ButtonBgPrimary());
-  } else if (variant instanceof Secondary) {
+  } else if (variant instanceof Primary && disabled2) {
+    _block = color3(new ButtonBgPrimaryDisabled());
+  } else if (variant instanceof Secondary && !disabled2) {
     _block = color3(new ButtonBgSecondary());
-  } else if (variant instanceof Warn) {
+  } else if (variant instanceof Secondary && disabled2) {
+    _block = color3(new ButtonBgSecondaryDisabled());
+  } else if (variant instanceof Warn && !disabled2) {
     _block = color3(new ButtonBgWarn());
-  } else {
+  } else if (variant instanceof Warn && disabled2) {
+    _block = color3(new ButtonBgWarnDisabled());
+  } else if (variant instanceof Danger && !disabled2) {
     _block = color3(new ButtonBgDanger());
+  } else {
+    _block = color3(new ButtonBgDangerDisabled());
   }
   let bg_color = _block;
   let _block$1;
-  if (variant instanceof Primary) {
+  if (variant instanceof Primary && !disabled2) {
     _block$1 = color3(new ButtonTextPrimary());
-  } else if (variant instanceof Secondary) {
+  } else if (variant instanceof Primary && disabled2) {
+    _block$1 = color3(new ButtonTextPrimaryDisabled());
+  } else if (variant instanceof Secondary && !disabled2) {
     _block$1 = color3(new ButtonTextSecondary());
-  } else if (variant instanceof Warn) {
+  } else if (variant instanceof Secondary && disabled2) {
+    _block$1 = color3(new ButtonTextSecondaryDisabled());
+  } else if (variant instanceof Warn && !disabled2) {
     _block$1 = color3(new ButtonTextWarn());
-  } else {
+  } else if (variant instanceof Warn && disabled2) {
+    _block$1 = color3(new ButtonTextWarnDisabled());
+  } else if (variant instanceof Danger && !disabled2) {
     _block$1 = color3(new ButtonTextDanger());
+  } else {
+    _block$1 = color3(new ButtonTextDangerDisabled());
   }
   let text_color = _block$1;
   let class$5 = class$4(
@@ -7438,15 +7651,18 @@ function button2(label, variant, on_click2) {
       font_size(px(14))
     ])
   );
+  let _block$2;
+  if (on_click2 instanceof Some) {
+    let on_click$1 = on_click2[0];
+    _block$2 = toList([on_click$1]);
+  } else {
+    _block$2 = toList([]);
+  }
   return button(
     class$5,
     (() => {
-      if (on_click2 instanceof Some) {
-        let on_click$1 = on_click2[0];
-        return toList([on_click$1]);
-      } else {
-        return toList([]);
-      }
+      let _pipe = _block$2;
+      return append(_pipe, attrs);
     })(),
     toList([text3(label)])
   );
@@ -7727,7 +7943,6 @@ function init_from_config(config) {
   );
 }
 function config_view(model, stylesheet2) {
-  let config = model.config;
   return render2(
     stylesheet2,
     toList([node()]),
@@ -7736,7 +7951,7 @@ function config_view(model, stylesheet2) {
         class$4(
           toList([
             width(px(400)),
-            property("margin", "50px auto"),
+            property2("margin", "50px auto"),
             padding(px(28)),
             background(color3(new CardBackground())),
             display("flex"),
@@ -7841,12 +8056,14 @@ function config_view(model, stylesheet2) {
               button2(
                 "Cancel",
                 new Secondary(),
-                new Some(on_click(new Cancel()))
+                new Some(on_click(new Cancel())),
+                toList([])
               ),
               button2(
                 "Save",
                 new Primary(),
-                new Some(on_click(new Save()))
+                new Some(on_click(new Save())),
+                toList([])
               )
             ])
           )
@@ -8098,7 +8315,7 @@ function load_config() {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo(error, "src/litebug_gleam.gleam", 108);
+                  echo(error, "src/litebug_gleam.gleam", 118);
                   return void 0;
                 }
               );
@@ -8111,11 +8328,7 @@ function load_config() {
       );
     }
   );
-  let _pipe$1 = from_result(_pipe);
-  return unwrap(
-    _pipe$1,
-    new OAuth2ClientConfig("", "", "", "", "")
-  );
+  return from_result(_pipe);
 }
 function load_token(model) {
   let _pipe = try$(
@@ -8133,7 +8346,7 @@ function load_token(model) {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo(error, "src/litebug_gleam.gleam", 133);
+                  echo(error, "src/litebug_gleam.gleam", 136);
                   return void 0;
                 }
               );
@@ -8169,15 +8382,15 @@ function auth_token_to_json(token) {
   return to_string2(_pipe);
 }
 function try_get_access_token(code2, config, dispatch) {
-  let $ = try$(
+  let _pipe = try$(
     localStorage(),
     (local_storage) => {
       return try$(
         getItem(local_storage, "glebs_verifier"),
         (verifier) => {
-          let _pipe = get_access_token(config, verifier, code2);
+          let _pipe2 = get_access_token(config, verifier, code2);
           let _pipe$1 = map_promise(
-            _pipe,
+            _pipe2,
             (token) => {
               if (token.isOk()) {
                 let token$1 = token[0];
@@ -8191,12 +8404,12 @@ function try_get_access_token(code2, config, dispatch) {
                     _capture
                   );
                 })(_pipe$22);
-                let $1 = _block;
+                let $ = _block;
                 dispatch(new LoggedInSuccessfully(token$1));
                 return new Ok(void 0);
               } else {
                 let error = token[0];
-                echo(error, "src/litebug_gleam.gleam", 195);
+                echo(error, "src/litebug_gleam.gleam", 204);
                 return new Ok(void 0);
               }
             }
@@ -8204,7 +8417,7 @@ function try_get_access_token(code2, config, dispatch) {
           let _pipe$2 = rescue(
             _pipe$1,
             (_) => {
-              echo("Error getting access token", "src/litebug_gleam.gleam", 201);
+              echo("Error getting access token", "src/litebug_gleam.gleam", 210);
               return new Ok(void 0);
             }
           );
@@ -8213,51 +8426,57 @@ function try_get_access_token(code2, config, dispatch) {
             (res) => {
               if (!res.isOk()) {
                 let e = res[0];
-                echo(e, "src/litebug_gleam.gleam", 207);
+                echo(e, "src/litebug_gleam.gleam", 216);
                 return void 0;
               } else {
                 return void 0;
               }
             }
           );
-          return new Ok(void 0);
+          return new Ok(none());
         }
       );
     }
   );
-  return void 0;
+  return unwrap2(_pipe, none());
 }
 function check_auth_code_handle(config) {
   return from(
     (dispatch) => {
-      let _block;
-      let _pipe = do_initial_uri();
-      let _pipe$1 = try$(
-        _pipe,
-        (current_uri) => {
-          let $1 = current_uri.query;
-          if ($1 instanceof Some) {
-            let query = $1[0];
-            return parse_query(query);
-          } else {
-            return new Error(void 0);
+      if (config instanceof None) {
+        replace2("/login", new None(), new None());
+      } else {
+        let config$1 = config[0];
+        let _block;
+        let _pipe = do_initial_uri();
+        let _pipe$1 = try$(
+          _pipe,
+          (current_uri) => {
+            let $1 = current_uri.query;
+            if ($1 instanceof Some) {
+              let query = $1[0];
+              return parse_query(query);
+            } else {
+              return new Error(void 0);
+            }
           }
-        }
-      );
-      let _pipe$2 = map3(_pipe$1, from_list);
-      let _pipe$3 = try$(
-        _pipe$2,
-        (_capture) => {
-          return map_get(_capture, "code");
-        }
-      );
-      _block = map3(
-        _pipe$3,
-        (_capture) => {
-          return try_get_access_token(_capture, config, dispatch);
-        }
-      );
-      let $ = _block;
+        );
+        let _pipe$2 = map3(_pipe$1, from_list);
+        let _pipe$3 = try$(
+          _pipe$2,
+          (_capture) => {
+            return map_get(_capture, "code");
+          }
+        );
+        let _pipe$4 = map3(
+          _pipe$3,
+          (_capture) => {
+            return try_get_access_token(_capture, config$1, dispatch);
+          }
+        );
+        _block = unwrap2(_pipe$4, none());
+        let $ = _block;
+      }
       return void 0;
     }
   );
@@ -8296,6 +8515,19 @@ function init3(_) {
           }
         })(),
         init2(on_url_change),
+        (() => {
+          if (model instanceof Model2 && model.token_response instanceof Some) {
+            return init_route(current_route);
+          } else if (model instanceof Model2 && model.token_response instanceof None && current_route instanceof HandleOauthPage) {
+            return init_route(current_route);
+          } else if (model instanceof Model2 && model.token_response instanceof None && current_route instanceof ConfigPage) {
+            return init_route(current_route);
+          } else if (model instanceof Model2 && model.token_response instanceof None && current_route instanceof LoginPage) {
+            return init_route(current_route);
+          } else {
+            return replace2("/login", new None(), new None());
+          }
+        })(),
         (() => {
           let $1 = model.token_response;
           if ($1 instanceof Some) {
@@ -8366,7 +8598,14 @@ function handle_route_change(model, route) {
       (() => {
         let _record = model;
         return new Model2(
-          new ConfigPage(init_from_config(model.oauth_config)),
+          new ConfigPage(
+            init_from_config(
+              (() => {
+                let _pipe = model.oauth_config;
+                return unwrap(_pipe, default_config());
+              })()
+            )
+          ),
           _record.oauth_config,
           _record.token_response
         );
@@ -8403,8 +8642,9 @@ function update2(model, msg) {
       })(),
       route
     );
-  } else if (msg instanceof Login) {
-    return [model, login(model.oauth_config)];
+  } else if (msg instanceof Login && model instanceof Model2 && model.oauth_config instanceof Some) {
+    let oauth_config = model.oauth_config[0];
+    return [model, login(oauth_config)];
   } else if (msg instanceof LoggedInSuccessfully) {
     let token = msg[0];
     return [
@@ -8451,7 +8691,7 @@ function update2(model, msg) {
           let _record = new_model;
           return new Model2(
             _record.route,
-            new_config_model.config,
+            new Some(new_config_model.config),
             _record.token_response
           );
         })(),
@@ -8473,7 +8713,7 @@ function login_view(model, stylesheet2) {
         class$4(
           toList([
             width(px(400)),
-            property("margin", "50px auto"),
+            property2("margin", "50px auto"),
             padding(px(28)),
             background(color3(new CardBackground())),
             display("flex"),
@@ -8493,12 +8733,36 @@ function login_view(model, stylesheet2) {
               div(
                 text_body(),
                 toList([]),
-                toList([text4("You are configured to log into:")])
+                toList([
+                  text4(
+                    (() => {
+                      let $ = model.oauth_config;
+                      if ($ instanceof Some) {
+                        return "You are configured to log into:";
+                      } else {
+                        return "You will need to configure before you can login";
+                      }
+                    })()
+                  )
+                ])
               ),
               div(
                 text_body(),
                 toList([]),
-                toList([text4(model.oauth_config.authorize_url)])
+                toList([
+                  text4(
+                    (() => {
+                      let _pipe = model.oauth_config;
+                      let _pipe$1 = map(
+                        _pipe,
+                        (conf) => {
+                          return conf.authorize_url;
+                        }
+                      );
+                      return unwrap(_pipe$1, "");
+                    })()
+                  )
+                ])
               )
             ])
           ),
@@ -8515,9 +8779,32 @@ function login_view(model, stylesheet2) {
               button2(
                 "Login",
                 new Primary(),
-                new Some(on_click(new Login()))
+                new Some(on_click(new Login())),
+                toList([
+                  new Disabled(
+                    (() => {
+                      let $ = model.oauth_config;
+                      if ($ instanceof Some) {
+                        return false;
+                      } else {
+                        return true;
+                      }
+                    })()
+                  )
+                ])
               ),
-              link_button("Change Config", new Secondary(), "/config")
+              link_button(
+                (() => {
+                  let $ = model.oauth_config;
+                  if ($ instanceof Some) {
+                    return "Change Config";
+                  } else {
+                    return "Set Config";
+                  }
+                })(),
+                new Secondary(),
+                "/config"
+              )
             ])
           )
         ])
@@ -8534,7 +8821,7 @@ function handle_oauth_view(_, stylesheet2) {
         class$4(
           toList([
             width(px(400)),
-            property("margin", "50px auto"),
+            property2("margin", "50px auto"),
             padding(px(28)),
             background(color3(new CardBackground())),
             display("flex"),
@@ -8583,7 +8870,8 @@ function home_view(_, stylesheet2) {
               button2(
                 "Logout",
                 new Primary(),
-                new Some(on_click(new Logout()))
+                new Some(on_click(new Logout())),
+                toList([])
               )
             ])
           )
@@ -8618,7 +8906,7 @@ function main() {
     throw makeError(
       "let_assert",
       "litebug_gleam",
-      37,
+      38,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }
@@ -8637,7 +8925,7 @@ function main() {
     throw makeError(
       "let_assert",
       "litebug_gleam",
-      39,
+      40,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $1 }

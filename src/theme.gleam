@@ -10,13 +10,21 @@ pub type ThemeColor {
   TextSuccess
   Accent
   ButtonBgPrimary
+  ButtonBgPrimaryDisabled
   ButtonBgSecondary
+  ButtonBgSecondaryDisabled
   ButtonBgWarn
+  ButtonBgWarnDisabled
   ButtonBgDanger
+  ButtonBgDangerDisabled
   ButtonTextPrimary
+  ButtonTextPrimaryDisabled
   ButtonTextSecondary
+  ButtonTextSecondaryDisabled
   ButtonTextWarn
+  ButtonTextWarnDisabled
   ButtonTextDanger
+  ButtonTextDangerDisabled
   CardBackground
   CardBackgroundPrimary
   CardBackgroundSecondary
@@ -39,13 +47,25 @@ pub fn color(theme_color: ThemeColor) -> String {
       TextSuccess -> nord.color(nord.Nord12)
       Accent -> nord.color(nord.Nord10)
       ButtonBgPrimary -> nord.color(nord.Nord10)
+      ButtonBgPrimaryDisabled ->
+        nord.color(nord.Nord10)
+        |> disabled_bg
       ButtonBgSecondary -> nord.color(nord.Nord4)
+      ButtonBgSecondaryDisabled -> nord.color(nord.Nord4)
       ButtonBgWarn -> nord.color(nord.Nord11)
+      ButtonBgWarnDisabled -> nord.color(nord.Nord11)
       ButtonBgDanger -> nord.color(nord.Nord13)
+      ButtonBgDangerDisabled -> nord.color(nord.Nord13)
       ButtonTextPrimary -> nord.color(nord.Nord4)
+      ButtonTextPrimaryDisabled ->
+        nord.color(nord.Nord4)
+        |> disabled_text
       ButtonTextSecondary -> nord.color(nord.Nord0)
+      ButtonTextSecondaryDisabled -> nord.color(nord.Nord0)
       ButtonTextWarn -> nord.color(nord.Nord9)
+      ButtonTextWarnDisabled -> nord.color(nord.Nord9)
       ButtonTextDanger -> nord.color(nord.Nord13)
+      ButtonTextDangerDisabled -> nord.color(nord.Nord13)
       CardBackground -> nord.color(nord.Nord2)
       CardBackgroundPrimary -> nord.color(nord.Nord1)
       CardBackgroundSecondary -> nord.color(nord.Nord2)
@@ -59,4 +79,31 @@ pub fn color(theme_color: ThemeColor) -> String {
     |> colour.to_rgba_hex_string
 
   "#" <> color
+}
+
+fn adjust_lightness(color: colour.Colour, value: Float) -> colour.Colour {
+  let hsla = colour.to_hsla(color)
+  let color = colour.from_hsla(hsla.0, hsla.1, hsla.2 +. value, hsla.3)
+  let assert Ok(final_color) = color
+
+  final_color
+}
+
+fn adjust_saturation(color: colour.Colour, value: Float) -> colour.Colour {
+  let hsla = colour.to_hsla(color)
+  let color = colour.from_hsla(hsla.0, hsla.1 +. value, hsla.2, hsla.3)
+  let assert Ok(final_color) = color
+
+  final_color
+}
+
+fn disabled_bg(color: colour.Colour) -> colour.Colour {
+  color
+  |> adjust_lightness(-0.15)
+  |> adjust_saturation(-0.03)
+}
+
+fn disabled_text(color: colour.Colour) -> colour.Colour {
+  color
+  |> adjust_lightness(-0.3)
 }
