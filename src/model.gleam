@@ -1,6 +1,7 @@
 import gleam/option
 import glebs
 import pages/config_page
+import pages/home_page
 
 pub type Model {
   Model(
@@ -11,10 +12,9 @@ pub type Model {
 }
 
 pub type Route {
-  HomePage
+  HomePage(home_page.Model)
   LoginPage
   HandleOauthPage
-  LogoutPage
   ConfigPage(config_page.ConfigModel)
 }
 
@@ -25,4 +25,5 @@ pub type Msg {
   Logout
   LoggedOut
   ConfigPageMsg(config_page.ConfigMsg)
+  HomePageMsg(home_page.Msg)
 }

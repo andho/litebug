@@ -5,7 +5,6 @@ import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri
 import lustre
-import lustre/attribute
 import lustre/effect
 import lustre/element
 import modem
@@ -29,10 +28,10 @@ import style.{text_body}
 
 import model.{
   type Model, type Msg, type Route, ConfigPage, HandleOauthPage, HomePage,
-  LoggedInSuccessfully, LoggedOut, Login, LoginPage, Logout, LogoutPage, Model,
-  RouteChanged,
+  LoggedInSuccessfully, LoggedOut, Login, LoginPage, Logout, Model, RouteChanged,
 }
 import pages/config_page
+import pages/home_page
 
 pub fn main() {
   let assert Ok(stylesheet) = sketch.stylesheet(sketch.Ephemeral)
@@ -46,11 +45,15 @@ fn init(_) -> #(Model, effect.Effect(Msg)) {
   let config = load_config()
 
   let model =
-    Model(route: HomePage, oauth_config: config, token_response: option.None)
+    Model(
+      route: HomePage(home_page.init_model()),
+      oauth_config: config,
+      token_response: option.None,
+    )
     |> load_token
   let current_route = case uri.parse(window.location()) {
     Ok(curr_uri) -> get_route(curr_uri)
-    Error(_) -> HomePage
+    Error(_) -> HomePage(home_page.init_model())
   }
 
   #(
@@ -96,13 +99,12 @@ fn init_route(route: Route) -> effect.Effect(Msg) {
 
 fn get_route(uri: uri.Uri) -> Route {
   case uri.path_segments(uri.path) {
-    [""] -> HomePage
+    [""] -> HomePage(home_page.init_model())
     ["oauth", "handle"] -> HandleOauthPage
     ["login"] -> LoginPage
-    ["logout"] -> LogoutPage
     ["config"] ->
       ConfigPage(config_page.init_from_config(config_page.default_config()))
-    _ -> HomePage
+    _ -> HomePage(home_page.init_model())
   }
 }
 
@@ -290,8 +292,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
       )
     }
 
-    Logout, _, _ -> #(model, logout())
-
+    model.HomePageMsg(home_page.Logout), _, _ -> #(model, logout())
     LoggedOut, _, _ -> #(
       Model(..model, token_response: None),
       modem.replace("/login", None, None),
@@ -332,7 +333,11 @@ fn update_with(
 
 pub fn view(model: Model, stylesheet) {
   case model.route {
-    HomePage -> home_view(model, stylesheet)
+    HomePage(home_model) ->
+      element.map(
+        home_page.home_view(home_model, stylesheet),
+        model.HomePageMsg,
+      )
     LoginPage -> login_view(model, stylesheet)
     ConfigPage(config_model) ->
       element.map(
@@ -340,7 +345,6 @@ pub fn view(model: Model, stylesheet) {
         model.ConfigPageMsg,
       )
     HandleOauthPage -> handle_oauth_view(model, stylesheet)
-    _ -> home_view(model, stylesheet)
   }
 }
 
@@ -433,16 +437,6 @@ pub fn handle_oauth_view(_model: Model, stylesheet) {
       ]),
     ],
   )
-}
-
-pub fn home_view(_model: Model, stylesheet) {
-  use <- sketch_lustre.render(stylesheet, [sketch_lustre.node()])
-
-  html.div(css.class([]), [], [
-    html.div(css.class([]), [], [
-      button("Logout", button.Primary, Some(event.on_click(Logout)), []),
-    ]),
-  ])
 }
 //pub fn get_cat() -> effect.Effect(Msg) {
 //  swr(Nil, cats.get_cat_promise, fn(result) {

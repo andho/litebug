@@ -8208,8 +8208,59 @@ function update(model, msg) {
   }
 }
 
-// build/dev/javascript/litebug_gleam/model.mjs
+// build/dev/javascript/litebug_gleam/pages/home_page.mjs
+var Description = class extends CustomType {
+};
 var Model2 = class extends CustomType {
+  constructor(form) {
+    super();
+    this.form = form;
+  }
+};
+var Logout = class extends CustomType {
+};
+function init_model() {
+  return new Model2(
+    new Form(
+      from_list(
+        toList([init_field(new Description(), required)])
+      )
+    )
+  );
+}
+function nav_bar(_) {
+  return div(
+    class$4(toList([])),
+    toList([]),
+    toList([
+      button2(
+        "Logout",
+        new Primary(),
+        new Some(on_click(new Logout())),
+        toList([])
+      )
+    ])
+  );
+}
+function home_view(model, stylesheet2) {
+  return render2(
+    stylesheet2,
+    toList([node()]),
+    () => {
+      return div(
+        class$4(toList([])),
+        toList([]),
+        toList([
+          nav_bar(model),
+          div(class$4(toList([])), toList([]), toList([]))
+        ])
+      );
+    }
+  );
+}
+
+// build/dev/javascript/litebug_gleam/model.mjs
+var Model3 = class extends CustomType {
   constructor(route, oauth_config, token_response) {
     super();
     this.route = route;
@@ -8218,12 +8269,14 @@ var Model2 = class extends CustomType {
   }
 };
 var HomePage = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
 };
 var LoginPage = class extends CustomType {
 };
 var HandleOauthPage = class extends CustomType {
-};
-var LogoutPage = class extends CustomType {
 };
 var ConfigPage = class extends CustomType {
   constructor(x0) {
@@ -8245,11 +8298,15 @@ var LoggedInSuccessfully = class extends CustomType {
     this[0] = x0;
   }
 };
-var Logout = class extends CustomType {
-};
 var LoggedOut = class extends CustomType {
 };
 var ConfigPageMsg = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var HomePageMsg = class extends CustomType {
   constructor(x0) {
     super();
     this[0] = x0;
@@ -8268,19 +8325,17 @@ function init_route(route) {
 function get_route(uri) {
   let $ = path_segments(uri.path);
   if ($.hasLength(1) && $.head === "") {
-    return new HomePage();
+    return new HomePage(init_model());
   } else if ($.hasLength(2) && $.head === "oauth" && $.tail.head === "handle") {
     return new HandleOauthPage();
   } else if ($.hasLength(1) && $.head === "login") {
     return new LoginPage();
-  } else if ($.hasLength(1) && $.head === "logout") {
-    return new LogoutPage();
   } else if ($.hasLength(1) && $.head === "config") {
     return new ConfigPage(
       init_from_config(default_config())
     );
   } else {
-    return new HomePage();
+    return new HomePage(init_model());
   }
 }
 function on_url_change(uri) {
@@ -8303,7 +8358,7 @@ function load_config() {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo(error, "src/litebug_gleam.gleam", 118);
+                  echo(error, "src/litebug_gleam.gleam", 120);
                   return void 0;
                 }
               );
@@ -8334,7 +8389,7 @@ function load_token(model) {
               return map_error(
                 _pipe2,
                 (error) => {
-                  echo(error, "src/litebug_gleam.gleam", 136);
+                  echo(error, "src/litebug_gleam.gleam", 138);
                   return void 0;
                 }
               );
@@ -8343,7 +8398,7 @@ function load_token(model) {
               return new Ok(
                 (() => {
                   let _record = model;
-                  return new Model2(
+                  return new Model3(
                     _record.route,
                     _record.oauth_config,
                     new Some(token2)
@@ -8397,7 +8452,7 @@ function try_get_access_token(code2, config, dispatch) {
                 return new Ok(void 0);
               } else {
                 let error = token[0];
-                echo(error, "src/litebug_gleam.gleam", 204);
+                echo(error, "src/litebug_gleam.gleam", 206);
                 return new Ok(void 0);
               }
             }
@@ -8405,7 +8460,7 @@ function try_get_access_token(code2, config, dispatch) {
           let _pipe$2 = rescue(
             _pipe$1,
             (_) => {
-              echo("Error getting access token", "src/litebug_gleam.gleam", 210);
+              echo("Error getting access token", "src/litebug_gleam.gleam", 212);
               return new Ok(void 0);
             }
           );
@@ -8414,7 +8469,7 @@ function try_get_access_token(code2, config, dispatch) {
             (res) => {
               if (!res.isOk()) {
                 let e = res[0];
-                echo(e, "src/litebug_gleam.gleam", 216);
+                echo(e, "src/litebug_gleam.gleam", 218);
                 return void 0;
               } else {
                 return void 0;
@@ -8472,7 +8527,11 @@ function check_auth_code_handle(config) {
 function init3(_) {
   let config = load_config();
   let _block;
-  let _pipe = new Model2(new HomePage(), config, new None());
+  let _pipe = new Model3(
+    new HomePage(init_model()),
+    config,
+    new None()
+  );
   _block = load_token(_pipe);
   let model = _block;
   let _block$1;
@@ -8481,13 +8540,13 @@ function init3(_) {
     let curr_uri = $[0];
     _block$1 = get_route(curr_uri);
   } else {
-    _block$1 = new HomePage();
+    _block$1 = new HomePage(init_model());
   }
   let current_route = _block$1;
   return [
     (() => {
       let _record = model;
-      return new Model2(
+      return new Model3(
         current_route,
         _record.oauth_config,
         _record.token_response
@@ -8504,13 +8563,13 @@ function init3(_) {
         })(),
         init2(on_url_change),
         (() => {
-          if (model instanceof Model2 && model.token_response instanceof Some) {
+          if (model instanceof Model3 && model.token_response instanceof Some) {
             return init_route(current_route);
-          } else if (model instanceof Model2 && model.token_response instanceof None && current_route instanceof HandleOauthPage) {
+          } else if (model instanceof Model3 && model.token_response instanceof None && current_route instanceof HandleOauthPage) {
             return init_route(current_route);
-          } else if (model instanceof Model2 && model.token_response instanceof None && current_route instanceof ConfigPage) {
+          } else if (model instanceof Model3 && model.token_response instanceof None && current_route instanceof ConfigPage) {
             return init_route(current_route);
-          } else if (model instanceof Model2 && model.token_response instanceof None && current_route instanceof LoginPage) {
+          } else if (model instanceof Model3 && model.token_response instanceof None && current_route instanceof LoginPage) {
             return init_route(current_route);
           } else {
             return replace2("/login", new None(), new None());
@@ -8585,7 +8644,7 @@ function handle_route_change(model, route) {
     return [
       (() => {
         let _record = model;
-        return new Model2(
+        return new Model3(
           new ConfigPage(
             init_from_config(
               (() => {
@@ -8610,7 +8669,7 @@ function update_with(update_resp, model, to_model, to_msg) {
   return [
     (() => {
       let _record = model;
-      return new Model2(
+      return new Model3(
         to_model(sub_model),
         _record.oauth_config,
         _record.token_response
@@ -8626,11 +8685,11 @@ function update2(model, msg) {
     return handle_route_change(
       (() => {
         let _record = model;
-        return new Model2(route, _record.oauth_config, _record.token_response);
+        return new Model3(route, _record.oauth_config, _record.token_response);
       })(),
       route
     );
-  } else if (msg instanceof Login && model instanceof Model2 && model.oauth_config instanceof Some) {
+  } else if (msg instanceof Login && model instanceof Model3 && model.oauth_config instanceof Some) {
     let oauth_config = model.oauth_config[0];
     return [model, login(oauth_config)];
   } else if (msg instanceof LoggedInSuccessfully) {
@@ -8638,17 +8697,17 @@ function update2(model, msg) {
     return [
       (() => {
         let _record = model;
-        return new Model2(_record.route, _record.oauth_config, new Some(token));
+        return new Model3(_record.route, _record.oauth_config, new Some(token));
       })(),
       replace2("/", new None(), new None())
     ];
-  } else if (msg instanceof Logout) {
+  } else if (msg instanceof HomePageMsg && msg[0] instanceof Logout) {
     return [model, logout()];
   } else if (msg instanceof LoggedOut) {
     return [
       (() => {
         let _record = model;
-        return new Model2(_record.route, _record.oauth_config, new None());
+        return new Model3(_record.route, _record.oauth_config, new None());
       })(),
       replace2("/login", new None(), new None())
     ];
@@ -8677,7 +8736,7 @@ function update2(model, msg) {
       return [
         (() => {
           let _record = new_model;
-          return new Model2(
+          return new Model3(
             _record.route,
             new Some(new_config_model.config),
             _record.token_response
@@ -8842,36 +8901,16 @@ function handle_oauth_view(_, stylesheet2) {
     }
   );
 }
-function home_view(_, stylesheet2) {
-  return render2(
-    stylesheet2,
-    toList([node()]),
-    () => {
-      return div(
-        class$4(toList([])),
-        toList([]),
-        toList([
-          div(
-            class$4(toList([])),
-            toList([]),
-            toList([
-              button2(
-                "Logout",
-                new Primary(),
-                new Some(on_click(new Logout())),
-                toList([])
-              )
-            ])
-          )
-        ])
-      );
-    }
-  );
-}
 function view(model, stylesheet2) {
   let $ = model.route;
   if ($ instanceof HomePage) {
-    return home_view(model, stylesheet2);
+    let home_model = $[0];
+    return map8(
+      home_view(home_model, stylesheet2),
+      (var0) => {
+        return new HomePageMsg(var0);
+      }
+    );
   } else if ($ instanceof LoginPage) {
     return login_view(model, stylesheet2);
   } else if ($ instanceof ConfigPage) {
@@ -8882,10 +8921,8 @@ function view(model, stylesheet2) {
         return new ConfigPageMsg(var0);
       }
     );
-  } else if ($ instanceof HandleOauthPage) {
-    return handle_oauth_view(model, stylesheet2);
   } else {
-    return home_view(model, stylesheet2);
+    return handle_oauth_view(model, stylesheet2);
   }
 }
 function main() {
@@ -8894,7 +8931,7 @@ function main() {
     throw makeError(
       "let_assert",
       "litebug_gleam",
-      38,
+      37,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }
@@ -8913,7 +8950,7 @@ function main() {
     throw makeError(
       "let_assert",
       "litebug_gleam",
-      40,
+      39,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $1 }
