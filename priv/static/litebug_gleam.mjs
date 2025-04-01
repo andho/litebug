@@ -2501,6 +2501,15 @@ function map_error(result, fun) {
     return new Error(fun(error));
   }
 }
+function flatten3(result) {
+  if (result.isOk()) {
+    let x = result[0];
+    return x;
+  } else {
+    let error = result[0];
+    return new Error(error);
+  }
+}
 function try$(result, fun) {
   if (result.isOk()) {
     let x = result[0];
@@ -3926,6 +3935,31 @@ function to_string3(uri) {
   }
   let parts$5 = _block$4;
   return concat2(parts$5);
+}
+function origin(uri) {
+  let scheme = uri.scheme;
+  let host = uri.host;
+  let port = uri.port;
+  if (host instanceof Some && scheme instanceof Some && scheme[0] === "https" && isEqual(port, new Some(443))) {
+    let h = host[0];
+    return new Ok(concat2(toList(["https://", h])));
+  } else if (host instanceof Some && scheme instanceof Some && scheme[0] === "http" && isEqual(port, new Some(80))) {
+    let h = host[0];
+    return new Ok(concat2(toList(["http://", h])));
+  } else if (host instanceof Some && scheme instanceof Some && (scheme[0] === "http" || scheme[0] === "https")) {
+    let h = host[0];
+    let s = scheme[0];
+    if (port instanceof Some) {
+      let p = port[0];
+      return new Ok(
+        concat2(toList([s, "://", h, ":", to_string(p)]))
+      );
+    } else {
+      return new Ok(concat2(toList([s, "://", h])));
+    }
+  } else {
+    return new Error(void 0);
+  }
 }
 var empty = /* @__PURE__ */ new Uri(
   /* @__PURE__ */ new None(),
@@ -5680,7 +5714,7 @@ function locationOf(w) {
 function setLocation(w, url) {
   w.location.href = url;
 }
-function origin() {
+function origin2() {
   return window.location.origin;
 }
 function pathname() {
@@ -7860,6 +7894,12 @@ function text_body() {
 }
 
 // build/dev/javascript/litebug_gleam/pages/config_page.mjs
+var FireflyUrl = class extends CustomType {
+};
+var RedirectUrl = class extends CustomType {
+};
+var ClientId = class extends CustomType {
+};
 var ConfigModel = class extends CustomType {
   constructor(config, errors, form) {
     super();
@@ -7878,16 +7918,6 @@ var Save = class extends CustomType {
 };
 var Cancel = class extends CustomType {
 };
-var AuthorizeUrl = class extends CustomType {
-};
-var TokenUrl = class extends CustomType {
-};
-var RedirectUri = class extends CustomType {
-};
-var ClientId = class extends CustomType {
-};
-var Scope = class extends CustomType {
-};
 function default_config() {
   return new OAuth2ClientConfig("", "", "", "", "");
 }
@@ -7898,11 +7928,9 @@ function default_model() {
     new Form(
       from_list(
         toList([
-          init_field(new AuthorizeUrl(), required),
-          init_field(new TokenUrl(), required),
-          init_field(new RedirectUri(), required),
-          init_field(new ClientId(), required),
-          init_field(new Scope(), required)
+          init_field(new FireflyUrl(), required),
+          init_field(new RedirectUrl(), required),
+          init_field(new ClientId(), required)
         ])
       )
     )
@@ -7911,16 +7939,16 @@ function default_model() {
 function init_from_config(config) {
   let defaults2 = default_model();
   let get_config_value = (field3) => {
-    if (field3 instanceof AuthorizeUrl) {
-      return config.authorize_url;
-    } else if (field3 instanceof TokenUrl) {
-      return config.token_url;
-    } else if (field3 instanceof RedirectUri) {
+    if (field3 instanceof FireflyUrl) {
+      let _pipe = config.authorize_url;
+      let _pipe$1 = parse2(_pipe);
+      let _pipe$2 = map3(_pipe$1, origin);
+      let _pipe$3 = flatten3(_pipe$2);
+      return unwrap2(_pipe$3, "");
+    } else if (field3 instanceof RedirectUrl) {
       return config.redirect_uri;
-    } else if (field3 instanceof ClientId) {
-      return config.client_id;
     } else {
-      return config.scope;
+      return config.client_id;
     }
   };
   return new ConfigModel(
@@ -7987,37 +8015,26 @@ function config_view(model, stylesheet2) {
             toList([]),
             toList([
               text_input(
-                "Authorize URL",
-                field_value(model.form, new AuthorizeUrl()),
+                "Firefly URL",
+                field_value(model.form, new FireflyUrl()),
                 handle_on_change(
                   (var0) => {
                     return new FormEvent(var0);
                   },
-                  new AuthorizeUrl()
+                  new FireflyUrl()
                 ),
-                field_error(model.form, new AuthorizeUrl())
+                field_error(model.form, new FireflyUrl())
               ),
               text_input(
-                "Token URL",
-                field_value(model.form, new TokenUrl()),
+                "Redirect URL",
+                field_value(model.form, new RedirectUrl()),
                 handle_on_change(
                   (var0) => {
                     return new FormEvent(var0);
                   },
-                  new TokenUrl()
+                  new RedirectUrl()
                 ),
-                field_error(model.form, new TokenUrl())
-              ),
-              text_input(
-                "Redirect URI",
-                field_value(model.form, new RedirectUri()),
-                handle_on_change(
-                  (var0) => {
-                    return new FormEvent(var0);
-                  },
-                  new RedirectUri()
-                ),
-                field_error(model.form, new RedirectUri())
+                field_error(model.form, new RedirectUrl())
               ),
               text_input(
                 "Client ID",
@@ -8029,17 +8046,6 @@ function config_view(model, stylesheet2) {
                   new ClientId()
                 ),
                 field_error(model.form, new ClientId())
-              ),
-              text_input(
-                "Scope",
-                field_value(model.form, new Scope()),
-                handle_on_change(
-                  (var0) => {
-                    return new FormEvent(var0);
-                  },
-                  new Scope()
-                ),
-                field_error(model.form, new Scope())
               )
             ])
           ),
@@ -8161,50 +8167,32 @@ function update(model, msg) {
       model.form.fields,
       model.config,
       (conf, field3, input_field) => {
-        if (field3 instanceof AuthorizeUrl) {
+        if (field3 instanceof FireflyUrl) {
           let _record2 = conf;
           return new OAuth2ClientConfig(
             _record2.client_id,
-            input_field.value,
-            _record2.token_url,
+            input_field.value + "/oauth/authorize",
+            input_field.value + "/oauth/token",
             _record2.redirect_uri,
             _record2.scope
           );
-        } else if (field3 instanceof TokenUrl) {
-          let _record2 = conf;
-          return new OAuth2ClientConfig(
-            _record2.client_id,
-            _record2.authorize_url,
-            input_field.value,
-            _record2.redirect_uri,
-            _record2.scope
-          );
-        } else if (field3 instanceof RedirectUri) {
+        } else if (field3 instanceof RedirectUrl) {
           let _record2 = conf;
           return new OAuth2ClientConfig(
             _record2.client_id,
             _record2.authorize_url,
             _record2.token_url,
             input_field.value,
-            _record2.scope
-          );
-        } else if (field3 instanceof ClientId) {
-          let _record2 = conf;
-          return new OAuth2ClientConfig(
-            input_field.value,
-            _record2.authorize_url,
-            _record2.token_url,
-            _record2.redirect_uri,
             _record2.scope
           );
         } else {
           let _record2 = conf;
           return new OAuth2ClientConfig(
-            _record2.client_id,
+            input_field.value,
             _record2.authorize_url,
             _record2.token_url,
             _record2.redirect_uri,
-            input_field.value
+            _record2.scope
           );
         }
       }
