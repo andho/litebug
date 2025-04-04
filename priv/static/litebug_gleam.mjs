@@ -2243,6 +2243,22 @@ function new$(first3, second2) {
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/list.mjs
+function length_loop(loop$list, loop$count) {
+  while (true) {
+    let list2 = loop$list;
+    let count = loop$count;
+    if (list2.atLeastLength(1)) {
+      let list$1 = list2.tail;
+      loop$list = list$1;
+      loop$count = count + 1;
+    } else {
+      return count;
+    }
+  }
+}
+function length(list2) {
+  return length_loop(list2, 0);
+}
 function reverse_and_prepend(loop$prefix, loop$suffix) {
   while (true) {
     let prefix = loop$prefix;
@@ -2262,6 +2278,33 @@ function reverse(list2) {
 }
 function is_empty(list2) {
   return isEqual(list2, toList([]));
+}
+function filter_loop(loop$list, loop$fun, loop$acc) {
+  while (true) {
+    let list2 = loop$list;
+    let fun = loop$fun;
+    let acc = loop$acc;
+    if (list2.hasLength(0)) {
+      return reverse(acc);
+    } else {
+      let first$1 = list2.head;
+      let rest$1 = list2.tail;
+      let _block;
+      let $ = fun(first$1);
+      if ($) {
+        _block = prepend(first$1, acc);
+      } else {
+        _block = acc;
+      }
+      let new_acc = _block;
+      loop$list = rest$1;
+      loop$fun = fun;
+      loop$acc = new_acc;
+    }
+  }
+}
+function filter(list2, predicate) {
+  return filter_loop(list2, predicate, toList([]));
 }
 function map_loop(loop$list, loop$fun, loop$acc) {
   while (true) {
@@ -2359,6 +2402,25 @@ function index_fold_loop(loop$over, loop$acc, loop$with, loop$index) {
 }
 function index_fold(list2, initial, fun) {
   return index_fold_loop(list2, initial, fun, 0);
+}
+function find2(loop$list, loop$is_desired) {
+  while (true) {
+    let list2 = loop$list;
+    let is_desired = loop$is_desired;
+    if (list2.hasLength(0)) {
+      return new Error(void 0);
+    } else {
+      let first$1 = list2.head;
+      let rest$1 = list2.tail;
+      let $ = is_desired(first$1);
+      if ($) {
+        return new Ok(first$1);
+      } else {
+        loop$list = rest$1;
+        loop$is_desired = is_desired;
+      }
+    }
+  }
 }
 function any(loop$list, loop$predicate) {
   while (true) {
@@ -5194,13 +5256,13 @@ var LustreClientApplication = class _LustreClientApplication {
    *
    * @returns {Gleam.Ok<(action: Lustre.Action<Lustre.Client, Msg>>) => void>}
    */
-  static start({ init: init4, update: update3, view: view2 }, selector, flags) {
+  static start({ init: init4, update: update4, view: view2 }, selector, flags) {
     if (!is_browser())
       return new Error(new NotABrowser());
     const root = selector instanceof HTMLElement ? selector : document.querySelector(selector);
     if (!root)
       return new Error(new ElementNotFound(selector));
-    const app = new _LustreClientApplication(root, init4(flags), update3, view2);
+    const app = new _LustreClientApplication(root, init4(flags), update4, view2);
     return new Ok((action) => app.send(action));
   }
   /**
@@ -5211,10 +5273,10 @@ var LustreClientApplication = class _LustreClientApplication {
    *
    * @returns {LustreClientApplication}
    */
-  constructor(root, [init4, effects], update3, view2) {
+  constructor(root, [init4, effects], update4, view2) {
     this.root = root;
     this.#model = init4;
-    this.#update = update3;
+    this.#update = update4;
     this.#view = view2;
     this.#tickScheduled = window.setTimeout(
       () => this.#tick(effects.all.toArray(), true),
@@ -5330,18 +5392,18 @@ var LustreClientApplication = class _LustreClientApplication {
 };
 var start = LustreClientApplication.start;
 var LustreServerApplication = class _LustreServerApplication {
-  static start({ init: init4, update: update3, view: view2, on_attribute_change }, flags) {
+  static start({ init: init4, update: update4, view: view2, on_attribute_change }, flags) {
     const app = new _LustreServerApplication(
       init4(flags),
-      update3,
+      update4,
       view2,
       on_attribute_change
     );
     return new Ok((action) => app.send(action));
   }
-  constructor([model, effects], update3, view2, on_attribute_change) {
+  constructor([model, effects], update4, view2, on_attribute_change) {
     this.#model = model;
-    this.#update = update3;
+    this.#update = update4;
     this.#view = view2;
     this.#html = view2(model);
     this.#onAttributeChange = on_attribute_change;
@@ -5444,10 +5506,10 @@ var is_browser = () => globalThis.window && window.document;
 
 // build/dev/javascript/lustre/lustre.mjs
 var App = class extends CustomType {
-  constructor(init4, update3, view2, on_attribute_change) {
+  constructor(init4, update4, view2, on_attribute_change) {
     super();
     this.init = init4;
-    this.update = update3;
+    this.update = update4;
     this.view = view2;
     this.on_attribute_change = on_attribute_change;
   }
@@ -5460,8 +5522,8 @@ var ElementNotFound = class extends CustomType {
 };
 var NotABrowser = class extends CustomType {
 };
-function application(init4, update3, view2) {
-  return new App(init4, update3, view2, new None());
+function application(init4, update4, view2) {
+  return new App(init4, update4, view2, new None());
 }
 function start2(app, selector, flags) {
   return guard(
@@ -5901,7 +5963,7 @@ function xxhash() {
       memory = new Uint8Array(mem.buffer);
     }
   }
-  function create2(size, seed, init4, update3, digest, finalize) {
+  function create2(size, seed, init4, update4, digest, finalize) {
     growMemory(size);
     const state = new Uint8Array(size);
     memory.set(state);
@@ -5919,7 +5981,7 @@ function xxhash() {
           memory.set(input2, size);
           length5 = input2.byteLength;
         }
-        update3(0, size, length5);
+        update4(0, size, length5);
         state.set(memory.slice(0, size));
         return this;
       },
@@ -6612,6 +6674,9 @@ var Cqmax = class extends CustomType {
 function px(value4) {
   return new Px(identity(value4));
 }
+function rem(value4) {
+  return new Rem(value4);
+}
 function to_string4(size) {
   if (size instanceof Px) {
     let value4 = size[0];
@@ -6758,17 +6823,26 @@ function font_size(font_size2) {
 function gap(gap2) {
   return property2("gap", to_string4(gap2));
 }
+function grid(value4) {
+  return property2("grid", value4);
+}
 function height(height2) {
   return property2("height", to_string4(height2));
 }
 function justify_content(justify) {
   return property2("justify-content", justify);
 }
-function margin_top(margin) {
-  return property2("margin-top", to_string4(margin));
+function margin(margin2) {
+  return property2("margin", to_string4(margin2));
+}
+function margin_top(margin2) {
+  return property2("margin-top", to_string4(margin2));
 }
 function padding(padding2) {
   return property2("padding", to_string4(padding2));
+}
+function padding_(padding2) {
+  return property2("padding", padding2);
 }
 function padding_bottom(padding2) {
   return property2("padding-bottom", to_string4(padding2));
@@ -6878,6 +6952,38 @@ function text3(content) {
 function element2(tag, class$5, attributes, children2) {
   let class$1 = new Some(class$5);
   return new Element3("", "", tag, class$1, attributes, children2);
+}
+function do_keyed(element3, key3) {
+  if (element3 instanceof Nothing) {
+    return new Nothing();
+  } else if (element3 instanceof Text2) {
+    let content = element3.content;
+    return new Text2(content);
+  } else if (element3 instanceof Map3) {
+    let subtree = element3.subtree;
+    return new Map3(() => {
+      return do_keyed(subtree(), key3);
+    });
+  } else {
+    let namespace = element3.namespace;
+    let tag = element3.tag;
+    let attributes = element3.class;
+    let children2 = element3.attributes;
+    let styles = element3.children;
+    return new Element3(key3, namespace, tag, attributes, children2, styles);
+  }
+}
+function keyed(element3, children2) {
+  return element3(
+    map2(
+      children2,
+      (_use0) => {
+        let key3 = _use0[0];
+        let child = _use0[1];
+        return do_keyed(child, key3);
+      }
+    )
+  );
 }
 function unstyled_children(stylesheet2, children2) {
   return fold2(
@@ -7307,6 +7413,7 @@ function to_rgba_hex_string(colour) {
   return to_base16(_pipe);
 }
 var red = /* @__PURE__ */ new Rgba(0.8, 0, 0, 1);
+var black = /* @__PURE__ */ new Rgba(0, 0, 0, 1);
 
 // build/dev/javascript/litebug_gleam/nord.mjs
 var Nord = class extends CustomType {
@@ -7418,6 +7525,8 @@ function color2(node_color) {
 }
 
 // build/dev/javascript/litebug_gleam/theme.mjs
+var Black = class extends CustomType {
+};
 var Background = class extends CustomType {
 };
 var Text3 = class extends CustomType {
@@ -7489,7 +7598,7 @@ function adjust_lightness(color4, value4) {
     throw makeError(
       "let_assert",
       "theme",
-      87,
+      89,
       "adjust_lightness",
       "Pattern match failed, no pattern matched the value.",
       { value: color$1 }
@@ -7505,7 +7614,7 @@ function adjust_saturation(color4, value4) {
     throw makeError(
       "let_assert",
       "theme",
-      95,
+      97,
       "adjust_saturation",
       "Pattern match failed, no pattern matched the value.",
       { value: color$1 }
@@ -7525,7 +7634,9 @@ function disabled_text(color4) {
 }
 function color3(theme_color) {
   let _block$1;
-  if (theme_color instanceof Background) {
+  if (theme_color instanceof Black) {
+    _block$1 = black;
+  } else if (theme_color instanceof Background) {
     _block$1 = color2(new Nord1());
   } else if (theme_color instanceof Text3) {
     _block$1 = color2(new Nord4());
@@ -7566,7 +7677,7 @@ function color3(theme_color) {
   } else if (theme_color instanceof ButtonTextSecondaryDisabled) {
     _block$1 = color2(new Nord0());
   } else if (theme_color instanceof ButtonTextWarn) {
-    _block$1 = color2(new Nord9());
+    _block$1 = color2(new Nord4());
   } else if (theme_color instanceof ButtonTextWarnDisabled) {
     _block$1 = color2(new Nord9());
   } else if (theme_color instanceof ButtonTextDanger) {
@@ -7750,7 +7861,6 @@ function text_input(label, value4, on_change, error) {
   return div(
     class$4(
       toList([
-        flex("1"),
         display("flex"),
         flex_direction("column"),
         gap(px(4))
@@ -8219,35 +8329,408 @@ function update(model, msg) {
 }
 
 // build/dev/javascript/litebug_gleam/pages/home_page.mjs
+var Date2 = class extends CustomType {
+};
 var Description = class extends CustomType {
 };
+var Source = class extends CustomType {
+};
+var Destination = class extends CustomType {
+};
+var Category = class extends CustomType {
+};
+var Budget = class extends CustomType {
+};
 var Model2 = class extends CustomType {
-  constructor(form) {
+  constructor(form, transactions) {
     super();
     this.form = form;
+    this.transactions = transactions;
   }
 };
 var Logout = class extends CustomType {
 };
-function init_model() {
-  return new Model2(
-    new Form(
-      from_list(
-        toList([init_field(new Description(), required)])
-      )
+var FormEvent2 = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var TransactionFormEvent = class extends CustomType {
+  constructor(x0, x1) {
+    super();
+    this[0] = x0;
+    this[1] = x1;
+  }
+};
+var DeleteTransaction = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var AddSplit = class extends CustomType {
+  constructor(x0) {
+    super();
+    this[0] = x0;
+  }
+};
+var Submit = class extends CustomType {
+};
+function init_transaction_form() {
+  return new Form(
+    from_list(
+      toList([
+        init_field(new Description(), required),
+        init_field(new Source(), required),
+        init_field(new Destination(), required),
+        init_field(new Budget(), required),
+        init_field(new Category(), required)
+      ])
     )
   );
 }
+function init_model() {
+  return new Model2(
+    new Form(
+      from_list(toList([init_field(new Date2(), required)]))
+    ),
+    toList([["0", init_transaction_form()], ["1", init_transaction_form()]])
+  );
+}
+function get_transaction(transactions, id) {
+  let _pipe = find2(
+    transactions,
+    (transaction) => {
+      let tid = transaction[0];
+      return tid === id;
+    }
+  );
+  return map3(_pipe, second);
+}
+function remove_transaction(transactions, id) {
+  return filter(
+    transactions,
+    (transaction) => {
+      let tid = transaction[0];
+      return tid !== id;
+    }
+  );
+}
+function update_transaction(transactions, id, transaction) {
+  return map2(
+    transactions,
+    (curr_transaction) => {
+      let tid = curr_transaction[0];
+      let transaction_form = curr_transaction[1];
+      let $ = tid === id;
+      if ($) {
+        return [id, transaction];
+      } else {
+        return [tid, transaction_form];
+      }
+    }
+  );
+}
+function update2(model, msg) {
+  if (msg instanceof FormEvent2 && msg[0] instanceof OnChange) {
+    let field3 = msg[0][0];
+    let value4 = msg[0][1];
+    let new_form = handle_form_event(
+      model.form,
+      new OnChange(field3, value4)
+    );
+    return [
+      (() => {
+        let _record = model;
+        return new Model2(new_form, _record.transactions);
+      })(),
+      none()
+    ];
+  } else if (msg instanceof TransactionFormEvent && msg[1] instanceof OnChange) {
+    let id = msg[0];
+    let field3 = msg[1][0];
+    let value4 = msg[1][1];
+    let _block;
+    let _pipe = get_transaction(model.transactions, id);
+    let _pipe$1 = map3(
+      _pipe,
+      (transaction) => {
+        let new_form = handle_form_event(
+          transaction,
+          new OnChange(field3, value4)
+        );
+        let _record = model;
+        return new Model2(
+          _record.form,
+          update_transaction(model.transactions, id, new_form)
+        );
+      }
+    );
+    _block = unwrap2(_pipe$1, model);
+    let new_model = _block;
+    return [new_model, none()];
+  } else if (msg instanceof AddSplit) {
+    let id = msg[0];
+    return [
+      (() => {
+        let _record = model;
+        return new Model2(
+          _record.form,
+          reverse(
+            prepend(
+              [id, init_transaction_form()],
+              reverse(model.transactions)
+            )
+          )
+        );
+      })(),
+      none()
+    ];
+  } else if (msg instanceof DeleteTransaction) {
+    let id = msg[0];
+    return [
+      (() => {
+        let _record = model;
+        return new Model2(
+          _record.form,
+          remove_transaction(model.transactions, id)
+        );
+      })(),
+      none()
+    ];
+  } else if (msg instanceof Submit) {
+    return [model, none()];
+  } else {
+    return [
+      (() => {
+        let _record = model;
+        return new Model2(init_model().form, _record.transactions);
+      })(),
+      replace2("/", new None(), new None())
+    ];
+  }
+}
 function nav_bar(_) {
   return div(
-    class$4(toList([])),
+    class$4(
+      toList([
+        background("#000"),
+        flex("1"),
+        height(px(28)),
+        padding_("12px 12px"),
+        display("flex"),
+        justify_content("space-between"),
+        align_items("center")
+      ])
+    ),
     toList([]),
     toList([
+      div(
+        class$4(
+          toList([
+            color(color3(new Text3())),
+            font_size(rem(1.5))
+          ])
+        ),
+        toList([]),
+        toList([text4("Litebug")])
+      ),
       button2(
         "Logout",
         new Primary(),
         new Some(on_click(new Logout())),
         toList([])
+      )
+    ])
+  );
+}
+function group_fields(model) {
+  return div(
+    class$4(
+      toList([
+        display("flex"),
+        width(px(260)),
+        padding(px(14)),
+        flex_direction("column"),
+        row_gap(px(14))
+      ])
+    ),
+    toList([]),
+    toList([
+      render_field(
+        model.form,
+        new Date2(),
+        (var0) => {
+          return new FormEvent2(var0);
+        },
+        (value4, on_change, error) => {
+          return text_input("Group Title", value4, on_change, error);
+        }
+      ),
+      render_field(
+        model.form,
+        new Date2(),
+        (var0) => {
+          return new FormEvent2(var0);
+        },
+        (value4, on_change, error) => {
+          return text_input("Date", value4, on_change, error);
+        }
+      ),
+      button2(
+        "Submit",
+        new Primary(),
+        new Some(on_click(new Submit())),
+        toList([])
+      )
+    ])
+  );
+}
+function transaction_view(model, form, id) {
+  return div(
+    class$4(
+      toList([
+        flex("1"),
+        padding(px(14)),
+        display("grid"),
+        grid("auto-flow / repeat(3, minmax(0, 1fr))"),
+        gap(px(14)),
+        background(color3(new CardBackground()))
+      ])
+    ),
+    toList([]),
+    toList([
+      render_field(
+        form,
+        new Description(),
+        (_capture) => {
+          return new TransactionFormEvent(id, _capture);
+        },
+        (value4, on_change, error) => {
+          return text_input("Description", value4, on_change, error);
+        }
+      ),
+      render_field(
+        form,
+        new Source(),
+        (_capture) => {
+          return new TransactionFormEvent(id, _capture);
+        },
+        (value4, on_change, error) => {
+          return text_input("Source", value4, on_change, error);
+        }
+      ),
+      render_field(
+        form,
+        new Destination(),
+        (_capture) => {
+          return new TransactionFormEvent(id, _capture);
+        },
+        (value4, on_change, error) => {
+          return text_input("Destination", value4, on_change, error);
+        }
+      ),
+      render_field(
+        form,
+        new Budget(),
+        (_capture) => {
+          return new TransactionFormEvent(id, _capture);
+        },
+        (value4, on_change, error) => {
+          return text_input("Budget", value4, on_change, error);
+        }
+      ),
+      render_field(
+        form,
+        new Category(),
+        (_capture) => {
+          return new TransactionFormEvent(id, _capture);
+        },
+        (value4, on_change, error) => {
+          return text_input("Category", value4, on_change, error);
+        }
+      ),
+      div(
+        class$4(
+          toList([display("flex"), flex_direction("row-reverse")])
+        ),
+        toList([]),
+        toList([
+          div(
+            class$4(
+              toList([
+                display("flex"),
+                flex_direction("column-reverse")
+              ])
+            ),
+            toList([]),
+            toList([
+              button2(
+                "Remove",
+                new Warn(),
+                new Some(on_click(new DeleteTransaction("0"))),
+                toList([])
+              )
+            ])
+          )
+        ])
+      )
+    ])
+  );
+}
+function transactions_view(model) {
+  return div(
+    class$4(
+      toList([
+        flex("1"),
+        display("flex"),
+        flex_direction("column"),
+        row_gap(px(14)),
+        margin(px(14))
+      ])
+    ),
+    toList([]),
+    toList([
+      keyed(
+        (_capture) => {
+          return div(
+            class$4(
+              toList([
+                flex("1"),
+                display("flex"),
+                flex_direction("column"),
+                row_gap(px(14))
+              ])
+            ),
+            toList([]),
+            _capture
+          );
+        },
+        map2(
+          model.transactions,
+          (transaction_form) => {
+            let id = transaction_form[0];
+            let form = transaction_form[1];
+            return [id, transaction_view(model, form, id)];
+          }
+        )
+      ),
+      div(
+        class$4(toList([display("flex")])),
+        toList([]),
+        toList([
+          button2(
+            "Add split",
+            new Secondary(),
+            new Some(
+              on_click(
+                new AddSplit(to_string(length(model.transactions)))
+              )
+            ),
+            toList([])
+          )
+        ])
       )
     ])
   );
@@ -8258,11 +8741,27 @@ function home_view(model, stylesheet2) {
     toList([node()]),
     () => {
       return div(
-        class$4(toList([])),
+        class$4(
+          toList([
+            display("flex"),
+            flex_direction("column"),
+            flex("1")
+          ])
+        ),
         toList([]),
         toList([
           nav_bar(model),
-          div(class$4(toList([])), toList([]), toList([]))
+          div(
+            class$4(
+              toList([
+                display("flex"),
+                flex_direction("row"),
+                flex("1")
+              ])
+            ),
+            toList([]),
+            toList([group_fields(model), transactions_view(model)])
+          )
         ])
       );
     }
@@ -8688,7 +9187,7 @@ function update_with(update_resp, model, to_model, to_msg) {
     map6(effect, to_msg)
   ];
 }
-function update2(model, msg) {
+function update3(model, msg) {
   let $ = model.route;
   if (msg instanceof RouteChanged) {
     let route = msg[0];
@@ -8757,6 +9256,20 @@ function update2(model, msg) {
     } else {
       return [new_model, effect];
     }
+  } else if (msg instanceof HomePageMsg && $ instanceof HomePage) {
+    let home_msg = msg[0];
+    let home_model = $[0];
+    let _pipe = update2(home_model, home_msg);
+    return update_with(
+      _pipe,
+      model,
+      (var0) => {
+        return new HomePage(var0);
+      },
+      (var0) => {
+        return new HomePageMsg(var0);
+      }
+    );
   } else {
     return [model, none()];
   }
@@ -8950,7 +9463,7 @@ function main() {
   let stylesheet2 = $[0];
   let app = application(
     init3,
-    update2,
+    update3,
     (_capture) => {
       return view(_capture, stylesheet2);
     }

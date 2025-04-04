@@ -17,7 +17,6 @@ pub fn text_input(
 
   html.div(
     css.class([
-      css.flex("1"),
       css.display("flex"),
       css.flex_direction("column"),
       css.gap(px(4)),

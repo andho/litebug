@@ -2,6 +2,7 @@ import gleam_community/colour
 import nord
 
 pub type ThemeColor {
+  Black
   Background
   Text
   TextSoft
@@ -39,6 +40,7 @@ pub type ThemeColor {
 pub fn color(theme_color: ThemeColor) -> String {
   let color =
     case theme_color {
+      Black -> colour.black
       Background -> nord.color(nord.Nord1)
       Text -> nord.color(nord.Nord4)
       TextSoft -> nord.color(nord.Nord5)
@@ -62,7 +64,7 @@ pub fn color(theme_color: ThemeColor) -> String {
         |> disabled_text
       ButtonTextSecondary -> nord.color(nord.Nord0)
       ButtonTextSecondaryDisabled -> nord.color(nord.Nord0)
-      ButtonTextWarn -> nord.color(nord.Nord9)
+      ButtonTextWarn -> nord.color(nord.Nord4)
       ButtonTextWarnDisabled -> nord.color(nord.Nord9)
       ButtonTextDanger -> nord.color(nord.Nord13)
       ButtonTextDangerDisabled -> nord.color(nord.Nord13)

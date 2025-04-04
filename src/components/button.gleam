@@ -1,4 +1,3 @@
-import gleam/bool
 import gleam/list
 import gleam/option.{None, Some}
 import lustre/attribute

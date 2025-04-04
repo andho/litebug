@@ -315,6 +315,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
       }
     }
 
+    model.HomePageMsg(home_msg), model.HomePage(home_model), _ -> {
+      home_page.update(home_model, home_msg)
+      |> update_with(model, model.HomePage, model.HomePageMsg)
+    }
+
     // ignore other messages. Occassionally uncomment to check for
     // exhaustiveness
     _, _, _ -> #(model, effect.none())
