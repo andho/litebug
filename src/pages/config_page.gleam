@@ -166,11 +166,13 @@ pub fn config_view(model: ConfigModel, stylesheet) {
         ]),
         [],
         [
-          text_input.text_input(
-            "Firefly URL",
-            form.field_value(model.form, FireflyUrl),
-            form.handle_on_change(FormEvent, FireflyUrl),
-            error: form.field_error(model.form, FireflyUrl),
+          form.render_field(
+            model.form,
+            FireflyUrl,
+            FormEvent,
+            fn(value, on_change, error) {
+              text_input.text_input("Firefly URL", value, on_change, error)
+            },
           ),
           text_input.text_input(
             "Redirect URL",

@@ -1,7 +1,9 @@
 import gleam/dict
 import gleam/option
 import gleam/result
+import lustre/attribute
 import lustre/event
+import sketch/lustre/element
 
 pub type FormEvent(field) {
   OnChange(field, String)
@@ -18,6 +20,20 @@ pub type InputField(field) {
 
 pub type Form(field) {
   Form(fields: dict.Dict(field, InputField(field)))
+}
+
+pub fn render_field(
+  form: Form(field),
+  field: field,
+  to_msg: fn(FormEvent(field)) -> msg,
+  fun: fn(String, attribute.Attribute(msg), option.Option(String)) ->
+    element.Element(a),
+) {
+  let value = field_value(form, field)
+  let on_change = handle_on_change(to_msg, field)
+  let error = field_error(form, field)
+
+  fun(value, on_change, error)
 }
 
 pub fn handle_form_event(

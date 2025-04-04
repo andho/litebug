@@ -7877,6 +7877,12 @@ function handle_on_change(msg, field3) {
     return msg(new OnChange(field3, val));
   });
 }
+function render_field(form, field3, to_msg, fun) {
+  let value4 = field_value(form, field3);
+  let on_change = handle_on_change(to_msg, field3);
+  let error = field_error(form, field3);
+  return fun(value4, on_change, error);
+}
 function init_field(field3, validate) {
   return [field3, new InputField(field3, "", validate, new None())];
 }
@@ -8014,16 +8020,20 @@ function config_view(model, stylesheet2) {
             ),
             toList([]),
             toList([
-              text_input(
-                "Firefly URL",
-                field_value(model.form, new FireflyUrl()),
-                handle_on_change(
-                  (var0) => {
-                    return new FormEvent(var0);
-                  },
-                  new FireflyUrl()
-                ),
-                field_error(model.form, new FireflyUrl())
+              render_field(
+                model.form,
+                new FireflyUrl(),
+                (var0) => {
+                  return new FormEvent(var0);
+                },
+                (value4, on_change, error) => {
+                  return text_input(
+                    "Firefly URL",
+                    value4,
+                    on_change,
+                    error
+                  );
+                }
               ),
               text_input(
                 "Redirect URL",
